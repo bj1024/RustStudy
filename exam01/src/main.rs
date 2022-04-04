@@ -27,5 +27,5 @@ fn type_exam(){
 
 
 fn another_function() {
-    println!("Another function.");
+   println!("Another function.");
 }
