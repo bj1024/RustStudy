@@ -16,7 +16,7 @@ fn example() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn filecheck(filename:&str){
+fn filecheck(filename:&str) {
 
     let f = File::options().append(true).open(filename);
 
@@ -35,9 +35,18 @@ fn filecheck(filename:&str){
     println!("file opened.{:?}",filename);
 
 
-    f.write_all(b"Hello, world!");
+    // f.write_all(b"Hello, world!");
 
-    f.sync_data();
+    // fn write_all(&mut self, buf: &[u8]) -> Result<()>
+    match f.write_all(b"Hello, world!\n") {
+        Ok(_) => {println!("write_all ok.")},
+        Err(e) => { panic!("Problem write_all: {:?}", e) },
+    }
+
+    match f.sync_data() {
+        Ok(_) => {println!("sync_data ok.")},
+        Err(e) => { panic!("Problem sync_data: {:?}", e) },
+    }
 
     
 }
