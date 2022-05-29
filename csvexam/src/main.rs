@@ -38,17 +38,19 @@ fn filecheck(filename:&str) {
     // f.write_all(b"Hello, world!");
 
     // fn write_all(&mut self, buf: &[u8]) -> Result<()>
-    match f.write_all(b"Hello, world!\n") {
-        Ok(_) => {},
-        Err(e) => { panic!("Problem write_all: {:?}", e) },
-    }
-
+    // match f.write_all(b"Hello, world!\n") {
+    //     Ok(_) => {},
+    //     Err(e) => { panic!("Problem write_all: {:?}", e) },
+    // }
+    f.write_all(b"Hello, world!\n").expect("Problem sync_data\n");
+    
     println!("write_all ok.");
 
-    match f.sync_data() {
-        Ok(_) => {},
-        Err(e) => { panic!("Problem sync_data: {:?}", e) },
-    }
+    f.sync_data().expect("Problem sync_data:");
+    // match f.sync_data() {
+    //     Ok(_) => {},
+    //     Err(e) => { panic!("Problem sync_data: {:?}", e) },
+    // }
 
     println!("sync_data ok.");
     
