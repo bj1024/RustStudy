@@ -16,8 +16,7 @@ fn example() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn filecheck(){
-    let filename = "hello.txt";
+fn filecheck(filename:&str){
 
     let f = File::options().append(true).open(filename);
 
@@ -48,7 +47,14 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     println!("{:?}", args);
 
-    filecheck();
+    if args.len() == 1 {
+        println!("usage:csvexam filename");
+        process::exit(1);
+    }
+    let filename = &args[1];
+
+    // let fname = "test.txt";
+    filecheck(&filename);
     
     if let Err(err) = example() {
         println!("error running example: {}", err);
