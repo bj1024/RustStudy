@@ -1,3 +1,4 @@
+use std::io::{BufReader, BufRead};
 use std::error::{Error};
 use std::fs::File;
 use std::{io, env};
@@ -28,7 +29,7 @@ fn funcret01() -> Result<(), io::Error>{
 
 
 fn filecheck(filename:&str) -> Result<&str, io::Error>{
-        let f = File::options().append(true).open(filename);
+    let f = File::options().append(true).open(filename);
 
     let mut f: File  = match f {
         Ok(file) => file,
@@ -76,7 +77,39 @@ fn filecheck(filename:&str) -> Result<&str, io::Error>{
     
 }
 
+fn read_file(filename:&str) -> Result<(),io::Error> {
+    // let f = File::options().read(true).write(false).open(filename);
+    let f = File::open(filename).expect(format!("file open error.[{}]",filename).as_str());
 
+    let mut reader = BufReader::new(f);
+    
+    let mut line = String::new();
+
+    while reader.read_line(&mut line)? > 0 {
+        let line_trimed = line.trim_end();
+        println!("line = [{}]",line_trimed);
+        line.clear();   // read_line はappendするので１行ずつの場合はクリアする。
+    }
+
+    Ok(())
+}
+
+fn read_csv(filename:&str) -> Result<(),io::Error> {
+    // let f = File::options().read(true).write(false).open(filename);
+    let f = File::open(filename).expect(format!("file open error.[{}]",filename).as_str());
+
+    let mut reader = BufReader::new(f);
+    
+    let mut line = String::new();
+
+    while reader.read_line(&mut line)? > 0 {
+        let line_trimed = line.trim_end();
+        println!("line = [{}]",line_trimed);
+        line.clear();   // read_line はappendするので１行ずつの場合はクリアする。
+    }
+
+    Ok(())
+}
 fn main() {
     let args: Vec<String> = env::args().collect();
     println!("{:?}", args);
@@ -88,14 +121,17 @@ fn main() {
     let filename = &args[1];
 
     // let fname = "test.txt";
-    match filecheck(&filename) {
+    // match filecheck(&filename) {
+    //     Ok(mes)=>{println!("mes:[{}]",mes)}
+    //     Err(e) => { panic!("Problem filecheck: {:?}", e) },
+    // }
 
-        Ok(mes)=>{println!("mes:[{}]",mes)}
-        Err(e) => { panic!("Problem filecheck: {:?}", e) },
-    }
-    
     // void的な関数
     let _ = funcret01();
+
+
+    // csv read 
+    let _ = read_csv(&filename);
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
