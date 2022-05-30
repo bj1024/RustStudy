@@ -16,9 +16,8 @@ fn example() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn filecheck(filename:&str) {
-
-    let f = File::options().append(true).open(filename);
+fn filecheck(filename:&str) -> Result<&str, io::Error>{
+        let f = File::options().append(true).open(filename);
 
     let mut f: File  = match f {
         Ok(file) => file,
@@ -42,17 +41,19 @@ fn filecheck(filename:&str) {
     //     Ok(_) => {},
     //     Err(e) => { panic!("Problem write_all: {:?}", e) },
     // }
-    f.write_all(b"Hello, world!\n").expect("Problem sync_data\n");
-    
+    // f.write_all(b"Hello, world!\n").expect("Problem sync_data\n");
+    f.write_all(b"Hello, world!\n")?;
     println!("write_all ok.");
 
-    f.sync_data().expect("Problem sync_data:");
+    // f.sync_data().expect("Problem sync_data:");
+    f.sync_data()?; // '?'は、Resultのエラーを伝播する場合に利用する。現在の関数戻り値がResultの場合にOK。
     // match f.sync_data() {
     //     Ok(_) => {},
     //     Err(e) => { panic!("Problem sync_data: {:?}", e) },
     // }
 
     println!("sync_data ok.");
+    return Ok("sync_data ok.");
     
 }
 
@@ -68,10 +69,15 @@ fn main() {
     let filename = &args[1];
 
     // let fname = "test.txt";
-    filecheck(&filename);
-    
-    if let Err(err) = example() {
-        println!("error running example: {}", err);
-        process::exit(1);
+    match filecheck(&filename) {
+
+        Ok(mes)=>{println!("mes:[{}]",mes)}
+        Err(e) => { panic!("Problem filecheck: {:?}", e) },
     }
+    
+    
+    // if let Err(err) = example() {
+    //     println!("error running example: {}", err);
+    //     process::exit(1);
+    // }
 }
