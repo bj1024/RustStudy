@@ -16,6 +16,17 @@ fn example() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// void的な戻り値の関数
+// '()' は Empty tuple ( ()は、unitと呼ばれる)
+// The tuple without any values, (), is a special type that has only one value, also written (). 
+// The type is called the unit type and the value is called the unit value. 
+// Expressions implicitly return the unit value if they don’t return any other value. 
+// https://doc.rust-lang.org/book/ch03-02-data-types.html
+fn funcret01() -> Result<(), io::Error>{
+    Ok(())
+}
+
+
 fn filecheck(filename:&str) -> Result<&str, io::Error>{
         let f = File::options().append(true).open(filename);
 
@@ -33,16 +44,24 @@ fn filecheck(filename:&str) -> Result<&str, io::Error>{
     };
     println!("file opened.{:?}",filename);
 
-
     // f.write_all(b"Hello, world!");
 
     // fn write_all(&mut self, buf: &[u8]) -> Result<()>
+
+    // 'match' 構文 Result内容により分岐する。
     // match f.write_all(b"Hello, world!\n") {
-    //     Ok(_) => {},
+    //     Ok(_) => {}, ←　成功のときは何もしていない。 
     //     Err(e) => { panic!("Problem write_all: {:?}", e) },
     // }
+    
+    // 'expect' 構文. Shortcuts for Panic on Error: unwrap and expect
+    // https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#shortcuts-for-panic-on-error-unwrap-and-expect
+    // match文のショートカット版
     // f.write_all(b"Hello, world!\n").expect("Problem sync_data\n");
+    
+    // '?'構文
     f.write_all(b"Hello, world!\n")?;
+    
     println!("write_all ok.");
 
     // f.sync_data().expect("Problem sync_data:");
@@ -75,7 +94,9 @@ fn main() {
         Err(e) => { panic!("Problem filecheck: {:?}", e) },
     }
     
-    
+    // void的な関数
+    let _ = funcret01();
+
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
     //     process::exit(1);
