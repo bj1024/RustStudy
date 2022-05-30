@@ -99,16 +99,18 @@ fn read_csv(filename:&str) -> Result<(),io::Error> {
     let f = File::open(filename).expect(format!("file open error.[{}]",filename).as_str());
 
     let mut reader = BufReader::new(f);
-    
-    let mut line = String::new();
+    let mut csvrdr = csv::Reader::from_reader(reader);
 
-    while reader.read_line(&mut line)? > 0 {
-        let line_trimed = line.trim_end();
-        println!("line = [{}]",line_trimed);
-        line.clear();   // read_line はappendするので１行ずつの場合はクリアする。
+    let mut row_number = 0;
+    for result in csvrdr.records() {
+        // The iterator yields Result<StringRecord, Error>, so we check the
+        // error here.
+        let record = result?;
+        println!("[{}] {:?}",row_number + 1, record);
+        row_number+=1;
     }
-
     Ok(())
+
 }
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -129,6 +131,9 @@ fn main() {
     // void的な関数
     let _ = funcret01();
 
+
+    // file read 
+    let _ = read_file(&filename);
 
     // csv read 
     let _ = read_csv(&filename);
