@@ -216,7 +216,7 @@ fn research_datetime() {
 
 
     // util.rsに関数化
-    let localdt = util::toYMD_HMS_ToLocalTime("2022-05-31 10:21:34").unwrap();
+    let localdt = util::toYMD_HMS_ToLocalTime("2022-05-32 10:21:34").unwrap();
     println!("toYMD_HMS_ToLocalTime=[{:?}]",localdt); 
 
 
