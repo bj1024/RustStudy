@@ -166,7 +166,7 @@ fn read_csv(filename: &str) -> Result<(), io::Error> {
     // let f = File::options().read(true).write(false).open(filename);
     let f = File::open(filename).expect(format!("file open error.[{}]", filename).as_str());
 
-    let mut reader = BufReader::new(f);
+    let reader = BufReader::new(f);
 
     // 
     // csv::cookbook - Rust https://docs.rs/csv/1.1.6/csv/cookbook/index.html
@@ -189,7 +189,7 @@ fn read_csv(filename: &str) -> Result<(), io::Error> {
         // zero dateはout of rangeとなって利用できない。
         // let zeronaive = NaiveDate::from_ymd(0,0,0);
         // let zerodate = Local.from_local_date(&zeronaive).unwrap();
-        let no = users.push(User {
+        users.push(User {
             no: record[0].parse().expect("no parse error."),
             name: record[1].to_string(),
             kana: record[2].to_string(),
@@ -219,7 +219,7 @@ fn research_datetime() {
     ); // now=[2022-05-31 10:18:17.871]
 
     let dt = Utc.ymd(2014, 11, 28).and_hms(12, 0, 9);
-    let fixed_dt = dt.with_timezone(&FixedOffset::east(9 * 3600));
+    // let fixed_dt = dt.with_timezone(&FixedOffset::east(9 * 3600));
 
     // NG String -> datetime 
     // DateTime::parse_from_str ヘルプによると、文字中にtimezoneが必要。
