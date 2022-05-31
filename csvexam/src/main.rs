@@ -7,6 +7,8 @@ use std::{env, fmt, io};
 
 use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc, NaiveDateTime};
 
+mod util;
+
 struct User {
     no: i32,
     name: String,
@@ -163,7 +165,7 @@ fn read_csv(filename: &str) -> Result<(), io::Error> {
             kana: record[2].to_string(),
             gender: record[3].to_string(),
             phone: record[4].to_string(),
-            birth: record[5].to_string(),
+            birth: Local::now(),   // TODO:
         });
         row_number += 1;
     }
@@ -213,9 +215,14 @@ fn research_datetime() {
     println!("parsed_offsetdt=[{:?}]",parsed_offsetdt); // parsed_offsetdt=[2022-05-31T10:21:34+09:00]
 
 
+    // util.rsに関数化
+    let localdt = util::toYMD_HMS_ToLocalTime("2022-05-31 10:21:34").unwrap();
+    println!("toYMD_HMS_ToLocalTime=[{:?}]",localdt); 
 
 
 }
+
+
 fn main() {
     // DateTimeの扱いの検証
     research_datetime();
