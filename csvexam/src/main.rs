@@ -5,7 +5,7 @@ use std::io::{ErrorKind, Write};
 use std::process;
 use std::{env, fmt, io};
 
-use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc, NaiveDateTime, Date, NaiveDate};
+use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc, NaiveDateTime, Date};
 
 mod util;
 
@@ -167,7 +167,14 @@ fn read_csv(filename: &str) -> Result<(), io::Error> {
     let f = File::open(filename).expect(format!("file open error.[{}]", filename).as_str());
 
     let mut reader = BufReader::new(f);
-    let mut csvrdr = csv::Reader::from_reader(reader);
+
+    // 
+    // csv::cookbook - Rust https://docs.rs/csv/1.1.6/csv/cookbook/index.html
+    let mut csvrdr = csv::ReaderBuilder::new()
+    .has_headers(true)
+    .delimiter(b',')
+    .from_reader(reader);
+
 
     let mut row_number = 0;
 

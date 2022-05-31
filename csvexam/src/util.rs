@@ -57,8 +57,8 @@ pub fn toYMD_ToLocalDate_with_format(dateStr:&str,fortmat:&str )->Result<Date<Lo
     Ok(v) =>  v,
 
     Err(e) => {
-      let estr = format!("parse date error.[{:?}]", e);
-
+      let estr = format!("parse date error.[{}][{:?}]",dateStr, e);
+      println!("{}",estr);
       //String::from(estr)と同じ rust1.9以降？ &str を String に変換する4つの方法 - Qiita https://qiita.com/uasi/items/3b08a5ba81fede837531
       // return Err(String::from(estr));
       return Err(estr.to_string());
