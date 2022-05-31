@@ -5,7 +5,7 @@ use std::io::{ErrorKind, Write};
 use std::process;
 use std::{env, fmt, io};
 
-use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc, NaiveDateTime};
+use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc, NaiveDateTime, Date, NaiveDate};
 
 mod util;
 
@@ -15,7 +15,7 @@ struct User {
     kana: String,
     gender: String,
     phone: String,
-    birth: DateTime<Local>,
+    birth: Option<Date<Local>>, // Option None,またはTを格納したオプショナル
 }
 
 impl User {
@@ -25,7 +25,7 @@ impl User {
         kana: String,
         gender: String,
         phone: String,
-        birth: DateTime<Local>,
+        birth: Option<Date<Local>>,
     ) -> Self {
         Self {
             no,
@@ -40,6 +40,26 @@ impl User {
 
 impl fmt::Debug for User {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // let birthstr = &self.birth.unwrap_or(0) ();
+        // .format("%Y-%m-%d").to_string()
+        // ;
+        // let birthstr =  match &self.birth{
+        //     None => String::from_str(""),
+        // };
+
+
+        // let birthstr = &self.birth.unwrap_or("").format("%Y-%m-%d").to_string();
+        // let birthstr;
+        // match &self.birth{
+        //     Some(v) => {  birthstr = v.format("%Y-%m-%d").to_string() } ,
+        //     None => {birthstr = "".to_string() },
+        // }
+
+        let birthstr = match &self.birth{
+            Some(v) => {  v.format("%Y-%m-%d").to_string() } ,
+            None => {"".to_string() },
+        };
+
         writeln!(
             f,
             "no:{} name:{} kana:{} gender:{} phone:{} birth:{}",
@@ -48,7 +68,7 @@ impl fmt::Debug for User {
             &self.kana, 
             &self.gender,
              &self.phone, 
-             &self.birth.format("%Y-%m-%d %H:%M:%S.%3f").to_string()
+             birthstr
         )?;
 
         Ok(())
@@ -159,13 +179,16 @@ fn read_csv(filename: &str) -> Result<(), io::Error> {
         let record = result?;
         println!("[{}] {:?}", row_number + 1, record);
 
+        // zero dateはout of rangeとなって利用できない。
+        // let zeronaive = NaiveDate::from_ymd(0,0,0);
+        // let zerodate = Local.from_local_date(&zeronaive).unwrap();
         let no = users.push(User {
             no: record[0].parse().expect("no parse error."),
             name: record[1].to_string(),
             kana: record[2].to_string(),
             gender: record[3].to_string(),
             phone: record[4].to_string(),
-            birth: Local::now(),   // TODO:
+            birth: util::toYMD_ToLocalDateOption_with_format(record[5].to_string().as_str(),"%Y/%m/%d"), 
         });
         row_number += 1;
     }
@@ -214,10 +237,13 @@ fn research_datetime() {
     let parsed_offsetdt = FixedOffset::east(9*3600).from_local_datetime(&parsed_dt_nontimezone).unwrap();
     println!("parsed_offsetdt=[{:?}]",parsed_offsetdt); // parsed_offsetdt=[2022-05-31T10:21:34+09:00]
 
+    // util.rsに関数化(DateTime)
+    let localdttime = util::toYMD_HMS_ToLocalDateTime("2022-05-31 10:21:34").unwrap();
+    println!("toYMD_HMS_ToLocalTime=[{:?}]",localdttime); 
 
-    // util.rsに関数化
-    let localdt = util::toYMD_HMS_ToLocalTime("2022-05-32 10:21:34").unwrap();
-    println!("toYMD_HMS_ToLocalTime=[{:?}]",localdt); 
+    // util.rsに関数化(Date)
+    let localdt = util::toYMD_ToLocalDate("2022-05-31").unwrap();
+    println!("toYMD_ToLocalDate=[{:?}]",localdt); 
 
 
 }
