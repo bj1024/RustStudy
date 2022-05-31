@@ -1,9 +1,34 @@
 use std::io::{BufReader, BufRead};
 use std::error::{Error};
 use std::fs::File;
-use std::{io, env};
+use std::{io, env, fmt};
 use std::io::{ErrorKind, Write};
 use std::process;
+
+use chrono::{DateTime, Local};
+
+struct User {
+    no: i32,
+    name: String,
+    kana: String,
+    gender: String,
+    phone:String,
+    birth:String
+}
+
+impl User {
+    fn new(no: i32, name: String, kana: String, gender: String, phone: String, birth: String) -> Self { Self { no, name, kana, gender, phone, birth } }
+
+}
+
+impl fmt::Debug for User {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "no:{} name:{} kana:{} gender:{} phone:{} birth:{}",
+         &self.no, &self.name, &self.kana, &self.gender, &self.phone, &self.birth)?;
+            
+        Ok(())
+    }
+}
 
 fn example() -> Result<(), Box<dyn Error>> {
     // Build the CSV reader and iterate over each record.
@@ -102,17 +127,44 @@ fn read_csv(filename:&str) -> Result<(),io::Error> {
     let mut csvrdr = csv::Reader::from_reader(reader);
 
     let mut row_number = 0;
+    
+    let mut users: Vec<User> = Vec::new();
+    
     for result in csvrdr.records() {
         // The iterator yields Result<StringRecord, Error>, so we check the
         // error here.
         let record = result?;
         println!("[{}] {:?}",row_number + 1, record);
-        row_number+=1;
+        
+        let no = 
+        users.push(User { 
+            no: record[0].parse().expect("no parse error."),
+             name: record[1].to_string(),
+              kana:record[2].to_string(),
+              gender: record[3].to_string(),
+               phone: record[4].to_string(),
+               birth: record[5].to_string()
+             });
+         row_number+=1;
     }
+
+    println!("users={:?}",users);
+    
     Ok(())
 
 }
+
+fn research_datetime(){
+    let local: DateTime<Local> = Local::now();
+    println!("now={:?}",local); // now=2022-05-31T10:09:38.930586+09:00
+    
+}
 fn main() {
+
+    // DateTimeの扱いの検証
+    research_atetimed();
+
+    // 引数の扱いの検証
     let args: Vec<String> = env::args().collect();
     println!("{:?}", args);
 
