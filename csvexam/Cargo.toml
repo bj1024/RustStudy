@@ -7,7 +7,12 @@ edition = "2021"
 
 [dependencies]
 
+# crates.io: Rust Package Registry https://crates.io/
+# Docs.rs crates.ioに登録されているライブラリのドキュメントサイト https://docs.rs/
+
+# csv - Rust https://docs.rs/csv/latest/csv/
 csv = "1.1"
 
+# chrono - Rust https://docs.rs/chrono/0.4.19/chrono/
 # chrono - crates.io: Rust Package Registry https://crates.io/crates/chrono
 chrono = "0.4"
