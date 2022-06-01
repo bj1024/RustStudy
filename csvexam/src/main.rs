@@ -257,6 +257,14 @@ fn research_datetime() {
     println!("toYMD_ToLocalDate=[{:?}]", localdt);
 }
 
+fn sort_users( mut users: Vec<User>) -> Vec<User>{
+    
+    // users.sort_by(|a, b|  { b.no.cmp(&a.no) });
+    users.sort_by(|a, b|  { b.birth.cmp(&a.birth) });
+    return users
+}
+
+
 fn main() {
     // DateTimeの扱いの検証
     research_datetime();
@@ -284,7 +292,13 @@ fn main() {
     let _ = read_file(&filename);
 
     // csv read
-    let _ = read_csv(&filename);
+    let users = read_csv(&filename).unwrap();
+
+    
+    println!("before sort users = {:?}",users);
+    let users_sorted = sort_users(users);
+    println!("after sort users = {:?}",users_sorted);
+    
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
