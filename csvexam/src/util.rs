@@ -112,3 +112,19 @@ pub fn to_localdate_with_format(date_str: &str, fortmat: &str) -> Result<Date<Lo
 //   }
 
 // }
+
+
+#[test]
+fn test_to_localdate_with_format() {
+    assert_eq!(to_localdate_with_format("2022-05-31","%Y-%m-%d").unwrap(),Local.ymd(2022, 5, 31));
+}
+
+#[test]
+fn test_to_localdate_with_format_err() {
+    
+    let e = to_localdate_with_format("2022-05-32","%Y-%m-%d").err().unwrap();
+    assert!(e.is::<chrono::ParseError>());
+
+    // assert_eq!(.map_err(|e| e.kind()),
+    // Err(chrono::ParseError::OutOfRange));
+}
