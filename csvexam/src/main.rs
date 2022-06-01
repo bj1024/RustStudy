@@ -260,7 +260,7 @@ fn research_datetime() {
 fn sort_users( mut users: Vec<User>) -> Vec<User>{
     
     // users.sort_by(|a, b|  { b.no.cmp(&a.no) });
-    users.sort_by(|a, b|  { b.birth.cmp(&a.birth) });
+    users.sort_by(|a, b|  { a.birth.cmp(&b.birth) });
     return users
 }
 
