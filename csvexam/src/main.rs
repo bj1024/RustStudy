@@ -5,7 +5,7 @@ use std::io::{ErrorKind, Write};
 use std::process;
 use std::{env, fmt, io};
 
-use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc, NaiveDateTime, Date};
+use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
 mod util;
 
@@ -47,7 +47,6 @@ impl fmt::Debug for User {
         //     None => String::from_str(""),
         // };
 
-
         // let birthstr = &self.birth.unwrap_or("").format("%Y-%m-%d").to_string();
         // let birthstr;
         // match &self.birth{
@@ -55,20 +54,15 @@ impl fmt::Debug for User {
         //     None => {birthstr = "".to_string() },
         // }
 
-        let birthstr = match &self.birth{
-            Some(v) => {  v.format("%Y-%m-%d").to_string() } ,
-            None => {"".to_string() },
+        let birthstr = match &self.birth {
+            Some(v) => v.format("%Y-%m-%d").to_string(),
+            None => "".to_string(),
         };
 
         writeln!(
             f,
             "no:{} name:{} kana:{} gender:{} phone:{} birth:{}",
-            &self.no, 
-            &self.name, 
-            &self.kana, 
-            &self.gender,
-             &self.phone, 
-             birthstr
+            &self.no, &self.name, &self.kana, &self.gender, &self.phone, birthstr
         )?;
 
         Ok(())
@@ -162,19 +156,18 @@ fn read_file(filename: &str) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn read_csv(filename: &str) -> Result<(), io::Error> {
+fn read_csv(filename: &str) -> Result<Vec<User>, io::Error> {
     // let f = File::options().read(true).write(false).open(filename);
     let f = File::open(filename).expect(format!("file open error.[{}]", filename).as_str());
 
     let reader = BufReader::new(f);
 
-    // 
+    //
     // csv::cookbook - Rust https://docs.rs/csv/1.1.6/csv/cookbook/index.html
     let mut csvrdr = csv::ReaderBuilder::new()
-    .has_headers(true)
-    .delimiter(b',')
-    .from_reader(reader);
-
+        .has_headers(true)
+        .delimiter(b',')
+        .from_reader(reader);
 
     let mut row_number = 0;
 
@@ -195,14 +188,17 @@ fn read_csv(filename: &str) -> Result<(), io::Error> {
             kana: record[2].to_string(),
             gender: record[3].to_string(),
             phone: record[4].to_string(),
-            birth: util::toYMD_ToLocalDateOption_with_format(record[5].to_string().as_str(),"%Y/%m/%d"), 
+            birth: util::toYMD_ToLocalDateOption_with_format(
+                record[5].to_string().as_str(),
+                "%Y/%m/%d",
+            ),
         });
         row_number += 1;
     }
 
     println!("users={:?}", users);
 
-    Ok(())
+    Ok(users)
 }
 
 fn research_datetime() {
@@ -218,43 +214,44 @@ fn research_datetime() {
         local.format("%Y-%m-%d %H:%M:%S.%3f").to_string()
     ); // now=[2022-05-31 10:18:17.871]
 
-    let dt = Utc.ymd(2014, 11, 28).and_hms(12, 0, 9);
+    // 時刻の生成(UTC)
+    let _ = Utc.ymd(2014, 11, 28).and_hms(12, 0, 9);
     // let fixed_dt = dt.with_timezone(&FixedOffset::east(9 * 3600));
 
-    // NG String -> datetime 
+    // NG String -> datetime
     // DateTime::parse_from_str ヘルプによると、文字中にtimezoneが必要。
     // Note that this method *requires a timezone* in the string
     // let parsed_dt = DateTime::parse_from_str("2022-05-31 10:21:34", "%Y-%m-%d %H:%M:%S")
     //     .expect("parse date error.");
 
     // timezoneがない場合は、Naive〜を利用する。
-    let parsed_dt_nontimezone = NaiveDateTime::parse_from_str("2022-05-31 10:21:34", "%Y-%m-%d %H:%M:%S")
-    .expect("parse date error.");
-    println!("parsed_dt_nontimezone=[{:?}]",parsed_dt_nontimezone); // parsed_dt_nontimezone=[2022-05-31T10:21:34] 
+    let parsed_dt_nontimezone =
+        NaiveDateTime::parse_from_str("2022-05-31 10:21:34", "%Y-%m-%d %H:%M:%S")
+            .expect("parse date error.");
+    println!("parsed_dt_nontimezone=[{:?}]", parsed_dt_nontimezone); // parsed_dt_nontimezone=[2022-05-31T10:21:34]
 
     // Naive -> DateTime（TimeZone付き）　に変換する
     let parsed_dt = Local.from_local_datetime(&parsed_dt_nontimezone).unwrap();
-    println!("parsed_dt=[{:?}]",parsed_dt); // parsed_dt=[2022-05-31T10:21:34+09:00]
-    
+    println!("parsed_dt=[{:?}]", parsed_dt); // parsed_dt=[2022-05-31T10:21:34+09:00]
+
     // UTCにする場合はこちら
     let parsed_utcdt = Utc.from_local_datetime(&parsed_dt_nontimezone).unwrap();
-        println!("parsed_utcdt=[{:?}]",parsed_utcdt); // parsed_utcdt=[2022-05-31T10:21:34Z]
+    println!("parsed_utcdt=[{:?}]", parsed_utcdt); // parsed_utcdt=[2022-05-31T10:21:34Z]
 
     // TimeZone時間指定の場合ははこちら
-    let parsed_offsetdt = FixedOffset::east(9*3600).from_local_datetime(&parsed_dt_nontimezone).unwrap();
-    println!("parsed_offsetdt=[{:?}]",parsed_offsetdt); // parsed_offsetdt=[2022-05-31T10:21:34+09:00]
+    let parsed_offsetdt = FixedOffset::east(9 * 3600)
+        .from_local_datetime(&parsed_dt_nontimezone)
+        .unwrap();
+    println!("parsed_offsetdt=[{:?}]", parsed_offsetdt); // parsed_offsetdt=[2022-05-31T10:21:34+09:00]
 
     // util.rsに関数化(DateTime)
     let localdttime = util::toYMD_HMS_ToLocalDateTime("2022-05-31 10:21:34").unwrap();
-    println!("toYMD_HMS_ToLocalTime=[{:?}]",localdttime); 
+    println!("toYMD_HMS_ToLocalTime=[{:?}]", localdttime);
 
     // util.rsに関数化(Date)
     let localdt = util::toYMD_ToLocalDate("2022-05-31").unwrap();
-    println!("toYMD_ToLocalDate=[{:?}]",localdt); 
-
-
+    println!("toYMD_ToLocalDate=[{:?}]", localdt);
 }
-
 
 fn main() {
     // DateTimeの扱いの検証
