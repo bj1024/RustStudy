@@ -19,6 +19,8 @@ struct User {
 }
 
 impl User {
+    /// Creates a new [`User`].
+    #[allow(dead_code)] // suppress "function is never used" warning.
     fn new(
         no: i32,
         name: String,
@@ -69,6 +71,7 @@ impl fmt::Debug for User {
     }
 }
 
+#[allow(dead_code)] // suppress "function is never used" warning.
 fn example() -> Result<(), Box<dyn Error>> {
     // Build the CSV reader and iterate over each record.
     let mut rdr = csv::Reader::from_reader(io::stdin());
@@ -91,6 +94,7 @@ fn funcret01() -> Result<(), io::Error> {
     Ok(())
 }
 
+#[allow(dead_code)] // suppress "function is never used" warning.
 fn filecheck(filename: &str) -> Result<&str, io::Error> {
     let f = File::options().append(true).open(filename);
 
@@ -188,7 +192,7 @@ fn read_csv(filename: &str) -> Result<Vec<User>, io::Error> {
             kana: record[2].to_string(),
             gender: record[3].to_string(),
             phone: record[4].to_string(),
-            birth: util::toYMD_ToLocalDateOption_with_format(
+            birth: util::to_localdate_with_format_opt(
                 record[5].to_string().as_str(),
                 "%Y/%m/%d",
             ),
@@ -245,11 +249,11 @@ fn research_datetime() {
     println!("parsed_offsetdt=[{:?}]", parsed_offsetdt); // parsed_offsetdt=[2022-05-31T10:21:34+09:00]
 
     // util.rsに関数化(DateTime)
-    let localdttime = util::toYMD_HMS_ToLocalDateTime("2022-05-31 10:21:34").unwrap();
+    let localdttime = util::ymdhms_to_localdatetime("2022-05-31 10:21:34").unwrap();
     println!("toYMD_HMS_ToLocalTime=[{:?}]", localdttime);
 
     // util.rsに関数化(Date)
-    let localdt = util::toYMD_ToLocalDate("2022-05-31").unwrap();
+    let localdt = util::ymd_to_localdate("2022-05-31").unwrap();
     println!("toYMD_ToLocalDate=[{:?}]", localdt);
 }
 
