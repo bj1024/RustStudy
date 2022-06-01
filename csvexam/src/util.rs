@@ -1,3 +1,5 @@
+use std::{error::Error};
+
 use chrono::{Date, DateTime, Local, LocalResult, NaiveDate, NaiveDateTime, TimeZone};
 
 pub fn ymdhms_to_localdatetime(date_str: &str) -> Result<DateTime<Local>, String> {
@@ -41,7 +43,7 @@ pub fn ymdhms_to_localdatetime(date_str: &str) -> Result<DateTime<Local>, String
 //     ymd_to_localdate(date_str).ok()
 // }
 
-pub fn ymd_to_localdate(date_str: &str) -> Result<Date<Local>, String> {
+pub fn ymd_to_localdate(date_str: &str) -> Result<Date<Local>, Box<dyn Error>>  {
     to_localdate_with_format(date_str, "%Y-%m-%d")
 }
 
@@ -49,28 +51,55 @@ pub fn to_localdate_with_format_opt(date_str: &str, fortmat: &str) -> Option<Dat
     to_localdate_with_format(date_str, fortmat).ok()
 }
 
-pub fn to_localdate_with_format(date_str: &str, fortmat: &str) -> Result<Date<Local>, String> {
-    let nontimezone = match NaiveDate::parse_from_str(date_str, fortmat) {
-        Ok(v) => v,
+// 文字の日付をDate<Local>に変換する。
+// （エラー文字で返すバージョン）
+// pub fn to_localdate_with_format(date_str: &str, fortmat: &str) -> Result<Date<Local>, String> {
+//     let nontimezone = match NaiveDate::parse_from_str(date_str, fortmat) {
+//         Ok(v) => v,
 
-        Err(e) => {
-            let estr = format!("parse date error.[{}][{:?}]", date_str, e);
-            println!("{}", estr);
-            //String::from(estr)と同じ rust1.9以降？ &str を String に変換する4つの方法 - Qiita https://qiita.com/uasi/items/3b08a5ba81fede837531
-            // return Err(String::from(estr));
-            return Err(estr.to_string());
-        }
-    };
+//         Err(e) => {
+//             let estr = format!("parse date error.[{}][{:?}]", date_str, e);
+//             println!("{}", estr);
+//             //String::from(estr)と同じ rust1.9以降？ &str を String に変換する4つの方法 - Qiita https://qiita.com/uasi/items/3b08a5ba81fede837531
+//             // return Err(String::from(estr));
+//             return Err(estr.to_string());
+//         }
+//     };
+
+//     let local_dt = Local.from_local_date(&nontimezone);
+//     let v = match local_dt {
+//         LocalResult::None => return Err("from_local_datetime none.".to_string()),
+//         LocalResult::Single(v) => v,
+//         LocalResult::Ambiguous(_, _) => return Err("from_local_datetime ambiguous.".to_string()),
+//     };
+
+//     Ok(v)
+// }
+
+// 文字の日付をDate<Local>に変換する。
+// （下位エラーをBox<dyn Error>で返すバージョン）
+// 　下位の複数種別のエラーを返す方法。
+//   Box: ヒープへの参照を持つ構造。
+//   dyn: dynamic　格納するサイズが動的な時に指定？
+//   Error : std::error::Error 
+pub fn to_localdate_with_format(date_str: &str, fortmat: &str) -> Result<Date<Local>, Box<dyn Error>> {
+
+    let nontimezone = NaiveDate::parse_from_str(date_str, fortmat)?;
 
     let local_dt = Local.from_local_date(&nontimezone);
-    let v = match local_dt {
-        LocalResult::None => return Err("from_local_datetime none.".to_string()),
-        LocalResult::Single(v) => v,
-        LocalResult::Ambiguous(_, _) => return Err("from_local_datetime ambiguous.".to_string()),
-    };
+
+    let v = local_dt.single().unwrap(); // ココは、LocalResult::None になることはないので、万一の場合はpanicとする。
+
+    // let v = match Local.from_local_date(&nontimezone) {
+    //     LocalResult::None => return Err("from_local_datetime none."),
+    //     LocalResult::Single(v) => v,
+    //     LocalResult::Ambiguous(_, _) => return Err("from_local_datetime ambiguous.".to_string()),
+    // };
 
     Ok(v)
 }
+
+
 
 // pub fn toYMD_ToOptionLocalDate(date_str:&str ) -> Option<Date<Local>>{
 
