@@ -264,6 +264,13 @@ fn sort_users( mut users: Vec<User>) -> Vec<User>{
     return users
 }
 
+// function by reference
+fn sort_users_ref( users: &mut Vec<User>){
+    // users.sort_by(|a, b|  { a.birth.cmp(&b.birth) });
+    users.sort_by(|a, b|  { a.birth.cmp(&b.birth) });
+   
+}
+
 
 fn main() {
     // DateTimeの扱いの検証
@@ -292,13 +299,19 @@ fn main() {
     let _ = read_file(&filename);
 
     // csv read
-    let users = read_csv(&filename).unwrap();
+    let mut users = read_csv(&filename).unwrap();
 
     
     println!("before sort users = {:?}",users);
-    let users_sorted = sort_users(users);
-    println!("after sort users = {:?}",users_sorted);
+    // let users_sorted = sort_users(users);
+    // println!("after sort users = {:?}",users_sorted);
+
+
+    // rust - Passing a Vec into a function by reference - Stack Overflow https://stackoverflow.com/questions/24102615/passing-a-vec-into-a-function-by-reference
+    sort_users_ref(users);
+    println!("after sort(ref) users = {:?}",users);
     
+
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
