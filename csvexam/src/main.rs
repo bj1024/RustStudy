@@ -10,6 +10,8 @@ use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 mod util;
 
@@ -20,12 +22,81 @@ macro_rules! print_divider {
     };
 }
 
+#[derive(Serialize, Deserialize)]
+struct MyPrimitive {
+    no: i32,
+    name: String,
+}
+
+// mod my_date_format {
+//     use chrono::{Date, Local};
+//     use serde::{self, Deserialize, Deserializer, Serializer};
+
+//     pub fn serialize<S>(value: &Date<Local>, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
+//     {
+//     }
+
+//     pub fn deserialize<'de, D>(deserializer: D) -> Result<Date<Local>, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//     }
+// }
+
+// mod my_optdate_format {
+//     use chrono::{Date, Local, TimeZone, Utc};
+//     use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+//     const FORMAT: &'static str = "%Y-%m-%d";
+
+//     // The signature of a serialize_with function must follow the pattern:
+//     //
+//     //    fn serialize<S>(&T, S) -> Result<S::Ok, S::Error>
+//     //    where
+//     //        S: Serializer
+//     //
+//     // although it may also be generic over the input types T.
+//     pub fn serialize<S>(value: &Option<Date<Local>>, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
+//     {
+//         #[derive(Serialize)]
+//         struct Helper<'a>(#[serde(with = "my_date_format")] &'a Date<Local>);
+
+//         value.as_ref().map(Helper).serialize(serializer)
+//     }
+
+//     // The signature of a deserialize_with function must follow the pattern:
+//     //
+//     //    fn deserialize<'de, D>(D) -> Result<T, D::Error>
+//     //    where
+//     //        D: Deserializer<'de>
+//     //
+//     // although it may also be generic over the output types T.
+//     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Date<Local>>, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         #[derive(Deserialize)]
+//         struct Helper(#[serde(with = "my_date_format")] Date<Local>);
+
+//         let helper = Option::deserialize(deserializer)?;
+//         Ok(helper.map(|Helper(external)| external))
+//     }
+// }
+
+// #[derive(Serialize, Deserialize)]
+#[derive(Clone)]
 struct User {
     no: i32,
     name: String,
     kana: String,
     gender: String,
     phone: String,
+
+    // #[serde(with = "my_optdate_format")]
     birth: Option<Date<Local>>, // Option None,またはTを格納したオプショナル
 }
 
@@ -309,7 +380,6 @@ fn regexp_exam() {
     assert_eq!(after, "03/14/2012, 01/01/2013 and 07/05/2014");
 }
 
-// function by reference
 fn hashmap_exam(users: Vec<User>) -> HashMap<String, User> {
     let mut map_users: HashMap<String, User> = HashMap::new();
 
@@ -318,7 +388,7 @@ fn hashmap_exam(users: Vec<User>) -> HashMap<String, User> {
         map_users.insert(user.name.clone(), user);
     }
 
-    let oneuser = map_users.get("宮下萌絵");
+    let oneuser = map_users.get("ＴＥＳＴ　ＴＡＲＯＵ");
     println!("hashmap_get = {:?}", oneuser);
 
     let oneuser2 = map_users.get("hogehoge");
@@ -326,7 +396,47 @@ fn hashmap_exam(users: Vec<User>) -> HashMap<String, User> {
 
     map_users
 }
+fn json_exam_users(_users: Vec<User>) {}
 
+fn json_exam_mystruct() {
+    // let john = json!(users);
+
+    // println!("users json = [{:?}]", john);
+
+    let datas: Vec<MyPrimitive> = vec![
+        MyPrimitive {
+            no: 1,
+            name: String::from("test"),
+        },
+        MyPrimitive {
+            no: 2,
+            name: String::from("test2"),
+        },
+        MyPrimitive {
+            no: 3,
+            name: String::from("test3"),
+        },
+    ];
+    let data_json = json!(datas);
+    println!("MyPrimitive json = [{:?}]", data_json);
+    println!("MyPrimitive json string = [{:?}]", data_json.to_string());
+    println!(
+        "MyPrimitive json string_pretty = [{:?}]",
+        serde_json::to_string_pretty(&data_json).unwrap()
+    );
+}
+
+fn json_exam_datetime() {
+    let datas = Local.ymd(2022, 05, 31).and_hms(12, 29, 9);
+
+    let data_json = json!(datas);
+    println!("datetime json = [{:?}]", data_json);
+    println!("datetime json string = [{:?}]", data_json.to_string());
+    println!(
+        "datetime json string_pretty = [{:?}]",
+        serde_json::to_string_pretty(&data_json).unwrap()
+    );
+}
 fn main() {
     // DateTimeの扱いの検証
     research_datetime();
@@ -363,6 +473,7 @@ fn main() {
     // csv read
     let mut users = read_csv(&filename).unwrap();
 
+    print_divider!("sort");
     println!("before sort users = {:?}", users);
     // let users_sorted = sort_users(users);
     // println!("after sort users = {:?}",users_sorted);
@@ -370,17 +481,21 @@ fn main() {
     // rust - Passing a Vec into a function by reference - Stack Overflow https://stackoverflow.com/questions/24102615/passing-a-vec-into-a-function-by-reference
     sort_users_ref(&mut users);
     println!("after sort(ref) users = {:?}", users);
-    print_divider!("");
 
     // Regular expression examine.
+    print_divider!("Regular expression");
     regexp_exam();
 
-    print_divider!("Regular expression");
-
     // HashMap examine.
-    let map_users = hashmap_exam(users);
+    print_divider!("HashMap");
+    // HashMapにmoveされるので、to_vecでcloneを作っておく。
+    let map_users = hashmap_exam(users.to_vec());
     println!("map_users={:?}", map_users);
 
+    // JSON examine.
+    print_divider!("JSON");
+    json_exam_mystruct();
+    json_exam_datetime();
     print_divider!("HashMap");
 
     // if let Err(err) = example() {
