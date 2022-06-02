@@ -13,6 +13,8 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+use crate::util::ymd_to_localdate;
+
 mod util;
 
 macro_rules! print_divider {
@@ -86,6 +88,98 @@ struct MyPrimitive {
 //         Ok(helper.map(|Helper(external)| external))
 //     }
 // }
+
+mod my_optdate_format {
+    use chrono::{Date, Local};
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    use crate::util::{to_localdate_with_format, ymd_to_localdate};
+
+    const FORMAT: &'static str = "%Y-%m-%d";
+
+    // The signature of a serialize_with function must follow the pattern:
+    //
+    //    fn serialize<S>(&T, S) -> Result<S::Ok, S::Error>
+    //    where
+    //        S: Serializer
+    //
+    // although it may also be generic over the input types T.
+    pub fn serialize<S>(date: &Option<Date<Local>>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match date {
+            Some(v) => {
+                let s = format!("{}", v.format(FORMAT));
+                serializer.serialize_str(&s)
+            }
+            None => serializer.serialize_none(),
+        }
+    }
+
+    // The signature of a deserialize_with function must follow the pattern:
+    //
+    //    fn deserialize<'de, D>(D) -> Result<T, D::Error>
+    //    where
+    //        D: Deserializer<'de>
+    //
+    // although it may also be generic over the output types T.
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Date<Local>>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error;
+        match Option::<String>::deserialize(deserializer) {
+            Ok(v) => {
+                println!("deserialize - Ok [{:?}]", v);
+                match v {
+                    Some(v) => {
+                        match ymd_to_localdate(v.as_str()) {
+                            Ok(v) => Ok(Some(v)),
+                            Err(e) => {
+                                // Err(Error::custom(e.to_string()))
+                                println!("❗️Warning [{}] {}", v, e);
+                                Ok(None)
+                            }
+                        }
+                        // Ok(Some().unwrap())),
+                    }
+                    None => Ok(None),
+                }
+            }
+            Err(e) => {
+                println!("deserialize - error [{:?}]", e);
+                Err(Error::custom("error"))
+            }
+        }
+        // Ok(Some(ymd_to_localdate("2023-12-31").unwrap()))
+        // match String::deserialize(deserializer) {
+        //     Ok(s) => match to_localdate_with_format(&s, FORMAT) {
+        //         Ok(v) => Ok(Some(v)),
+        //         Err(e) => Err(Error::custom("error")),
+        //     },
+        //     Err(e) => {
+        //         println!("error {:?}", e);
+        //         return Ok(None);
+        //     }
+        // }
+
+        // Utc.datetime_from_str(&s, FORMAT)
+        //     .map_err(serde::de::Error::custom)
+    }
+}
+
+// JSONはDateTimeの形式を定義していないが、javascriptの 2012-04-23T18:25:43.511Z を利用した方が良い。
+//  javascript - What is the "right" JSON date format? - Stack Overflow https://stackoverflow.com/questions/10286204/what-is-the-right-json-date-format
+
+//
+// Option<Date<Local>>は ChronoがSerialize Deserializeを提供していない。実装が必要。
+#[derive(Debug, Serialize, Deserialize)]
+struct MyDateStruct {
+    no: i32,
+    #[serde(with = "my_optdate_format")]
+    dt: Option<Date<Local>>,
+}
 
 // #[derive(Serialize, Deserialize)]
 #[derive(Clone)]
@@ -332,7 +426,7 @@ fn research_datetime() {
     println!("toYMD_HMS_ToLocalTime=[{:?}]", localdttime);
 
     // util.rsに関数化(Date)
-    let localdt = util::ymd_to_localdate("2022-05-31").unwrap();
+    let localdt = ymd_to_localdate("2022-05-31").unwrap();
     println!("toYMD_ToLocalDate=[{:?}]", localdt);
 }
 
@@ -437,6 +531,48 @@ fn json_exam_datetime() {
         serde_json::to_string_pretty(&data_json).unwrap()
     );
 }
+
+// fn json_exam_date() {
+//     let datas = ymd_to_localdate("2022-05-31").unwrap();
+
+//     let data_json = json!(datas);
+//     println!("datetime json = [{:?}]", data_json);
+//     println!("datetime json string = [{:?}]", data_json.to_string());
+//     println!(
+//         "datetime json string_pretty = [{:?}]",
+//         serde_json::to_string_pretty(&data_json).unwrap()
+//     );
+// }
+
+fn json_exam_datestruct() {
+    let datas = ymd_to_localdate("2022-05-31").unwrap();
+    let datas: Vec<MyDateStruct> = vec![
+        MyDateStruct {
+            no: 1,
+            dt: Some(ymd_to_localdate("2022-05-31").unwrap()),
+        },
+        MyDateStruct { no: 2, dt: None },
+    ];
+
+    let data_json = json!(datas);
+    println!("datestruct json = [{:?}]", data_json);
+    println!("datestruct json string = [{:?}]", data_json.to_string());
+    println!(
+        "datestruct json string_pretty = [{:?}]",
+        serde_json::to_string_pretty(&data_json).unwrap()
+    );
+
+    // let srcstr = "[{\"dt\":\"2022-12-31\",\"no\":10},{\"dt\":null,\"no\":11}]";
+    let srcstr = r#"[
+        {"dt":"2022-12-31","no":10},
+        {"dt":null,"no":11},
+        {"dt":"2022-12-32","no":10}
+        ]"#;
+
+    let v: Vec<MyDateStruct> = serde_json::from_str(srcstr).unwrap();
+    println!("datestruct json string_pretty = [{:?}]", v);
+}
+
 fn main() {
     // DateTimeの扱いの検証
     research_datetime();
@@ -496,7 +632,7 @@ fn main() {
     print_divider!("JSON");
     json_exam_mystruct();
     json_exam_datetime();
-    print_divider!("HashMap");
+    json_exam_datestruct();
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
