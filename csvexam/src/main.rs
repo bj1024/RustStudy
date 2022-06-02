@@ -566,7 +566,8 @@ fn json_exam_datestruct() {
     let srcstr = r#"[
         {"dt":"2022-12-31","no":10},
         {"dt":null,"no":11},
-        {"dt":"2022-12-32","no":10}
+        {"dt":"2022-12-32","no":12},
+        {"dt":"","no":13}
         ]"#;
 
     let v: Vec<MyDateStruct> = serde_json::from_str(srcstr).unwrap();
