@@ -279,6 +279,13 @@ fn regexp_exam() {
     println!("re.is_match={:?}", re_match);
 }
 
+macro_rules! print_divider {
+    () => {
+        println!("");
+        println!("----------------");
+    };
+}
+
 fn main() {
     // DateTimeの扱いの検証
     research_datetime();
@@ -299,11 +306,18 @@ fn main() {
     //     Err(e) => { panic!("Problem filecheck: {:?}", e) },
     // }
 
+    print_divider!();
+
     // void的な関数
+
     let _ = funcret01();
+
+    print_divider!();
 
     // file read
     let _ = read_file(&filename);
+
+    print_divider!();
 
     // csv read
     let mut users = read_csv(&filename).unwrap();
@@ -315,6 +329,7 @@ fn main() {
     // rust - Passing a Vec into a function by reference - Stack Overflow https://stackoverflow.com/questions/24102615/passing-a-vec-into-a-function-by-reference
     sort_users_ref(&mut users);
     println!("after sort(ref) users = {:?}", users);
+    print_divider!();
 
     // Regular expression examine.
     regexp_exam();
