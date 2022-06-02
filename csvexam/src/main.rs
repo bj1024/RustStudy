@@ -278,24 +278,33 @@ fn sort_users_ref(users: &mut Vec<User>) {
 }
 
 fn regexp_exam() {
+    // static condition
     lazy_static! {
         static ref RE_YMD: Regex = Regex::new(r"(\d{4})-(\d{2})-(\d{2})").unwrap();
     }
 
+    // Match
     let re_match = RE_YMD.is_match("2014-01-01");
     println!("re.is_match={:?}", re_match);
 
     print_divider!("   ");
 
+    // caputure
     let text = "2012-03-14, 2013-01-01 and 2014-07-05";
     for cap in RE_YMD.captures_iter(text) {
         println!("Month: {} Day: {} Year: {}", &cap[2], &cap[3], &cap[1]);
     }
 
     print_divider!("   ");
+    // replace
     let re = Regex::new(r"(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})").unwrap();
     let before = "2012-03-14, 2013-01-01 and 2014-07-05";
+    // Cow<str> という構造が返る。
+    // Cow in alloc::borrow - Rust https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html
+    //
     let after = re.replace_all(before, "$m/$d/$y");
+    println!("replace_all before=[{}]", before);
+    println!("replace_all after =[{}]", after);
     assert_eq!(after, "03/14/2012, 01/01/2013 and 07/05/2014");
 }
 
