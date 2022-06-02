@@ -192,10 +192,7 @@ fn read_csv(filename: &str) -> Result<Vec<User>, io::Error> {
             kana: record[2].to_string(),
             gender: record[3].to_string(),
             phone: record[4].to_string(),
-            birth: util::to_localdate_with_format_opt(
-                record[5].to_string().as_str(),
-                "%Y/%m/%d",
-            ),
+            birth: util::to_localdate_with_format_opt(record[5].to_string().as_str(), "%Y/%m/%d"),
         });
         row_number += 1;
     }
@@ -257,20 +254,25 @@ fn research_datetime() {
     println!("toYMD_ToLocalDate=[{:?}]", localdt);
 }
 
-fn sort_users( mut users: Vec<User>) -> Vec<User>{
-    
+#[allow(dead_code)] // suppress "function is never used" warning.
+fn sort_users(mut users: Vec<User>) -> Vec<User> {
     // users.sort_by(|a, b|  { b.no.cmp(&a.no) });
-    users.sort_by(|a, b|  { a.birth.cmp(&b.birth) });
-    return users
+    users.sort_by(|a, b| a.birth.cmp(&b.birth));
+    return users;
 }
 
 // function by reference
-fn sort_users_ref( users: &mut Vec<User>){
+fn sort_users_ref(users: &mut Vec<User>) {
     // users.sort_by(|a, b|  { a.birth.cmp(&b.birth) });
-    users.sort_by(|a, b|  { a.birth.cmp(&b.birth) });
-   
+    users.sort_by(|a, b| a.birth.cmp(&b.birth));
 }
 
+fn regexp_exam() {
+    use regex::Regex;
+    let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+    let re_match = re.is_match("2014-01-01");
+    println!("re.is_match={:?}", re_match);
+}
 
 fn main() {
     // DateTimeの扱いの検証
@@ -301,17 +303,16 @@ fn main() {
     // csv read
     let mut users = read_csv(&filename).unwrap();
 
-    
-    println!("before sort users = {:?}",users);
+    println!("before sort users = {:?}", users);
     // let users_sorted = sort_users(users);
     // println!("after sort users = {:?}",users_sorted);
 
-
     // rust - Passing a Vec into a function by reference - Stack Overflow https://stackoverflow.com/questions/24102615/passing-a-vec-into-a-function-by-reference
-    sort_users_ref(users);
-    println!("after sort(ref) users = {:?}",users);
-    
+    sort_users_ref(&mut users);
+    println!("after sort(ref) users = {:?}", users);
 
+    // Regular expression examine.
+    regexp_exam();
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);

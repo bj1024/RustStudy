@@ -16,3 +16,11 @@ csv = "1.1"
 # chrono - Rust https://docs.rs/chrono/0.4.19/chrono/
 # chrono - crates.io: Rust Package Registry https://crates.io/crates/chrono
 chrono = "0.4"
+
+
+# regex - Rust https://docs.rs/regex/latest/regex/
+regex = "1"
+
+# rust-lang-nursery/lazy-static.rs: A small macro for defining lazy evaluated static variables in Rust. https://github.com/rust-lang-nursery/lazy-static.rs
+lazy_static = "1.4.0"
+
