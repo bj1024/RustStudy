@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -308,6 +309,24 @@ fn regexp_exam() {
     assert_eq!(after, "03/14/2012, 01/01/2013 and 07/05/2014");
 }
 
+// function by reference
+fn hashmap_exam(users: Vec<User>) -> HashMap<String, User> {
+    let mut map_users: HashMap<String, User> = HashMap::new();
+
+    for user in users {
+        println!("[{:2}],[{}]", user.no, user.name);
+        map_users.insert(user.name.clone(), user);
+    }
+
+    let oneuser = map_users.get("宮下萌絵");
+    println!("hashmap_get = {:?}", oneuser);
+
+    let oneuser2 = map_users.get("hogehoge");
+    println!("hashmap_get(not found) = {:?}", oneuser2);
+
+    map_users
+}
+
 fn main() {
     // DateTimeの扱いの検証
     research_datetime();
@@ -334,12 +353,12 @@ fn main() {
 
     let _ = funcret01();
 
-    print_divider!("");
+    print_divider!("file read");
 
     // file read
     let _ = read_file(&filename);
 
-    print_divider!("");
+    print_divider!("csv read");
 
     // csv read
     let mut users = read_csv(&filename).unwrap();
@@ -355,6 +374,14 @@ fn main() {
 
     // Regular expression examine.
     regexp_exam();
+
+    print_divider!("Regular expression");
+
+    // HashMap examine.
+    let map_users = hashmap_exam(users);
+    println!("map_users={:?}", map_users);
+
+    print_divider!("HashMap");
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
