@@ -12,6 +12,13 @@ use regex::Regex;
 
 mod util;
 
+macro_rules! print_divider {
+    ($prefix:literal) => {
+        println!("");
+        println!("---------- {} ----------", $prefix);
+    };
+}
+
 struct User {
     no: i32,
     name: String,
@@ -272,18 +279,24 @@ fn sort_users_ref(users: &mut Vec<User>) {
 
 fn regexp_exam() {
     lazy_static! {
-        static ref RE_YMD: Regex = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+        static ref RE_YMD: Regex = Regex::new(r"(\d{4})-(\d{2})-(\d{2})").unwrap();
     }
 
     let re_match = RE_YMD.is_match("2014-01-01");
     println!("re.is_match={:?}", re_match);
-}
 
-macro_rules! print_divider {
-    () => {
-        println!("");
-        println!("----------------");
-    };
+    print_divider!("   ");
+
+    let text = "2012-03-14, 2013-01-01 and 2014-07-05";
+    for cap in RE_YMD.captures_iter(text) {
+        println!("Month: {} Day: {} Year: {}", &cap[2], &cap[3], &cap[1]);
+    }
+
+    print_divider!("   ");
+    let re = Regex::new(r"(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})").unwrap();
+    let before = "2012-03-14, 2013-01-01 and 2014-07-05";
+    let after = re.replace_all(before, "$m/$d/$y");
+    assert_eq!(after, "03/14/2012, 01/01/2013 and 07/05/2014");
 }
 
 fn main() {
@@ -306,18 +319,18 @@ fn main() {
     //     Err(e) => { panic!("Problem filecheck: {:?}", e) },
     // }
 
-    print_divider!();
+    print_divider!("");
 
     // void的な関数
 
     let _ = funcret01();
 
-    print_divider!();
+    print_divider!("");
 
     // file read
     let _ = read_file(&filename);
 
-    print_divider!();
+    print_divider!("");
 
     // csv read
     let mut users = read_csv(&filename).unwrap();
@@ -329,7 +342,7 @@ fn main() {
     // rust - Passing a Vec into a function by reference - Stack Overflow https://stackoverflow.com/questions/24102615/passing-a-vec-into-a-function-by-reference
     sort_users_ref(&mut users);
     println!("after sort(ref) users = {:?}", users);
-    print_divider!();
+    print_divider!("");
 
     // Regular expression examine.
     regexp_exam();
