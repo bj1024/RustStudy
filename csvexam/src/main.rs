@@ -7,6 +7,9 @@ use std::{env, fmt, io};
 
 use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
+use lazy_static::lazy_static;
+use regex::Regex;
+
 mod util;
 
 struct User {
@@ -268,9 +271,11 @@ fn sort_users_ref(users: &mut Vec<User>) {
 }
 
 fn regexp_exam() {
-    use regex::Regex;
-    let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
-    let re_match = re.is_match("2014-01-01");
+    lazy_static! {
+        static ref RE_YMD: Regex = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+    }
+
+    let re_match = RE_YMD.is_match("2014-01-01");
     println!("re.is_match={:?}", re_match);
 }
 
