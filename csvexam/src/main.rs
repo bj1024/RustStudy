@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, BufWriter};
 use std::io::{ErrorKind, Write};
 use std::process;
 use std::{env, fmt, io};
@@ -574,6 +574,34 @@ fn json_exam_datestruct() {
     println!("datestruct json string_pretty = [{:?}]", v);
 }
 
+// in_filename の拡張子を.outにして、書き出すサンプル。
+fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
+    println!("fileread_write in:[{}]", in_fname);
+
+    // infile
+    let f_in = File::options().read(true).open(in_fname)?;
+    let mut reader = BufReader::new(f_in);
+
+    // out
+    let mut out_fname = String::from(in_fname);
+    out_fname += ".out";
+    println!("fileread_write out:[{}]", out_fname);
+    let f_out = File::create(out_fname)?;
+
+    let mut writer = BufWriter::new(f_out);
+
+    let mut line = String::new();
+
+    while reader.read_line(&mut line)? > 0 {
+        let line_trimed = line.trim_end();
+        println!("line = [{}]", line_trimed);
+        writer.write(line.as_bytes());
+        line.clear(); // read_line はappendするので１行ずつの場合はクリアする。
+    }
+
+    Ok(())
+}
+
 fn main() {
     // DateTimeの扱いの検証
     research_datetime();
@@ -634,6 +662,15 @@ fn main() {
     json_exam_mystruct();
     json_exam_datetime();
     json_exam_datestruct();
+
+    // File read write examine.
+    print_divider!("File read/write.");
+    match fileread_write(filename) {
+        Ok(v) => v,
+        Err(e) => {
+            println!("fileread_write error {:?}", e)
+        }
+    }
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
