@@ -614,6 +614,8 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
+    // 時刻のフォーマットは、ここを参照。
+    // Format description - Time https://time-rs.github.io/book/api/format-description.html
     let config = ConfigBuilder::new()
         // .set_time_format_rfc3339() // 2022-06-03T06:25:12.001052Z
         // .set_time_format_rfc2822()   // Fri, 03 Jun 2022 06:24:54 +0000
