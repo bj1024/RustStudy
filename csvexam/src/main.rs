@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate log;
-
-use log4rs;
+extern crate simplelog;
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -15,9 +14,14 @@ use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
 // use env_logger::Env;
 use lazy_static::lazy_static;
+use log::{Level, LevelFilter};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use simplelog::{
+    format_description, Color, ColorChoice, CombinedLogger, Config, ConfigBuilder, TermLogger,
+    TerminalMode, WriteLogger,
+};
 
 use crate::util::ymd_to_localdate;
 
@@ -610,7 +614,29 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+    let config = ConfigBuilder::new()
+        // .set_time_format_rfc3339() // 2022-06-03T06:25:12.001052Z
+        // .set_time_format_rfc2822()   // Fri, 03 Jun 2022 06:24:54 +0000
+        .set_time_format_custom(format_description!(
+            "[hour]:[minute]:[second].[subsecond digits:3]"
+        ))
+        .build();
+
+    let logfname = format!("log/app{}.log", Local::now().format("%Y%m%d").to_string());
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            LevelFilter::Debug,
+            config.clone(),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            LevelFilter::Debug,
+            config.clone(),
+            File::create(logfname).unwrap(),
+        ),
+    ])
+    .unwrap();
 
     trace!("some trace log");
     debug!("some debug log");
