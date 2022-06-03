@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate log;
-extern crate simplelog;
+
+use log4rs;
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -14,11 +15,9 @@ use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
 // use env_logger::Env;
 use lazy_static::lazy_static;
-use log::LevelFilter;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 
 use crate::util::ymd_to_localdate;
 
@@ -611,20 +610,7 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    CombinedLogger::init(vec![
-        TermLogger::new(
-            LevelFilter::Debug,
-            Config::default(),
-            TerminalMode::Mixed,
-            ColorChoice::Auto,
-        ),
-        WriteLogger::new(
-            LevelFilter::Debug,
-            Config::default(),
-            File::create("log/my.log").unwrap(),
-        ),
-    ])
-    .unwrap();
+    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
 
     trace!("some trace log");
     debug!("some debug log");

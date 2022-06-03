@@ -36,5 +36,8 @@ serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
 # env_logger = "0.9.0"
 # simplelog - crates.io: Rust Package Registry https://crates.io/crates/simplelog
-simplelog = "^0.12.0"
+#simplelog = "^0.12.0"
 
+# estk/log4rs: A highly configurable logging framework for Rust https://github.com/estk/log4rs
+# log4rs 1.1.1 - Docs.rs https://docs.rs/crate/log4rs/1.1.1
+log4rs = "1.1.1"
