@@ -1,21 +1,24 @@
 #[macro_use]
 extern crate log;
+extern crate simplelog;
 
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
 use std::io::{ErrorKind, Write};
-use std::process::{self, exit};
+use std::process::{self};
 use std::{env, fmt, io};
 
 use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
-use env_logger::Env;
+// use env_logger::Env;
 use lazy_static::lazy_static;
+use log::LevelFilter;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 
 use crate::util::ymd_to_localdate;
 
@@ -97,7 +100,7 @@ mod my_optdate_format {
     use chrono::{Date, Local};
     use serde::{self, Deserialize, Deserializer, Serializer};
 
-    use crate::util::{to_localdate_with_format, ymd_to_localdate};
+    use crate::util::ymd_to_localdate;
 
     const FORMAT: &'static str = "%Y-%m-%d";
 
@@ -494,7 +497,8 @@ fn hashmap_exam(users: Vec<User>) -> HashMap<String, User> {
 
     map_users
 }
-fn json_exam_users(_users: Vec<User>) {}
+
+// fn json_exam_users(_users: Vec<User>) {}
 
 fn json_exam_mystruct() {
     // let john = json!(users);
@@ -549,7 +553,7 @@ fn json_exam_datetime() {
 // }
 
 fn json_exam_datestruct() {
-    let datas = ymd_to_localdate("2022-05-31").unwrap();
+    // let datas = ymd_to_localdate("2022-05-31").unwrap();
     let datas: Vec<MyDateStruct> = vec![
         MyDateStruct {
             no: 1,
@@ -599,7 +603,7 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
     while reader.read_line(&mut line)? > 0 {
         let line_trimed = line.trim_end();
         debug!("line = [{}]", line_trimed);
-        writer.write(line.as_bytes());
+        writer.write(line.as_bytes())?;
         line.clear(); // read_line はappendするので１行ずつの場合はクリアする。
     }
 
@@ -607,11 +611,20 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let env = Env::default()
-        .filter_or("MY_LOG_LEVEL", "trace")
-        .write_style_or("MY_LOG_STYLE", "always");
-
-    env_logger::init_from_env(env);
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            LevelFilter::Debug,
+            Config::default(),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            LevelFilter::Debug,
+            Config::default(),
+            File::create("log/my.log").unwrap(),
+        ),
+    ])
+    .unwrap();
 
     trace!("some trace log");
     debug!("some debug log");
