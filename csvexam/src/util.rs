@@ -1,4 +1,4 @@
-use std::{error::Error};
+use std::error::Error;
 
 use chrono::{Date, DateTime, Local, LocalResult, NaiveDate, NaiveDateTime, TimeZone};
 
@@ -43,7 +43,7 @@ pub fn ymdhms_to_localdatetime(date_str: &str) -> Result<DateTime<Local>, String
 //     ymd_to_localdate(date_str).ok()
 // }
 
-pub fn ymd_to_localdate(date_str: &str) -> Result<Date<Local>, Box<dyn Error>>  {
+pub fn ymd_to_localdate(date_str: &str) -> Result<Date<Local>, Box<dyn Error>> {
     to_localdate_with_format(date_str, "%Y-%m-%d")
 }
 
@@ -81,9 +81,11 @@ pub fn to_localdate_with_format_opt(date_str: &str, fortmat: &str) -> Option<Dat
 // 　下位の複数種別のエラーを返す方法。
 //   Box: ヒープへの参照を持つ構造。
 //   dyn: dynamic　格納するサイズが動的な時に指定？
-//   Error : std::error::Error 
-pub fn to_localdate_with_format(date_str: &str, fortmat: &str) -> Result<Date<Local>, Box<dyn Error>> {
-
+//   Error : std::error::Error
+pub fn to_localdate_with_format(
+    date_str: &str,
+    fortmat: &str,
+) -> Result<Date<Local>, Box<dyn Error>> {
     let nontimezone = NaiveDate::parse_from_str(date_str, fortmat)?;
 
     let local_dt = Local.from_local_date(&nontimezone);
@@ -99,8 +101,6 @@ pub fn to_localdate_with_format(date_str: &str, fortmat: &str) -> Result<Date<Lo
     Ok(v)
 }
 
-
-
 // pub fn toYMD_ToOptionLocalDate(date_str:&str ) -> Option<Date<Local>>{
 
 //   match toYMD_ToLocalDate(date_str){
@@ -113,16 +113,19 @@ pub fn to_localdate_with_format(date_str: &str, fortmat: &str) -> Result<Date<Lo
 
 // }
 
-
 #[test]
 fn test_to_localdate_with_format() {
-    assert_eq!(to_localdate_with_format("2022-05-31","%Y-%m-%d").unwrap(),Local.ymd(2022, 5, 31));
+    assert_eq!(
+        to_localdate_with_format("2022-05-31", "%Y-%m-%d").unwrap(),
+        Local.ymd(2022, 5, 31)
+    );
 }
 
 #[test]
 fn test_to_localdate_with_format_err() {
-    
-    let e = to_localdate_with_format("2022-05-32","%Y-%m-%d").err().unwrap();
+    let e = to_localdate_with_format("2022-05-32", "%Y-%m-%d")
+        .err()
+        .unwrap();
     assert!(e.is::<chrono::ParseError>());
 
     // assert_eq!(.map_err(|e| e.kind()),

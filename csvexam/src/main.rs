@@ -1,13 +1,17 @@
+#[macro_use]
+extern crate log;
+
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
 use std::io::{ErrorKind, Write};
-use std::process;
+use std::process::{self, exit};
 use std::{env, fmt, io};
 
 use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
+use env_logger::Env;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -19,8 +23,8 @@ mod util;
 
 macro_rules! print_divider {
     ($prefix:literal) => {
-        println!("");
-        println!("---------- {} ----------", $prefix);
+        info!("");
+        info!("---------- {} ----------", $prefix);
     };
 }
 
@@ -131,14 +135,14 @@ mod my_optdate_format {
         use serde::de::Error;
         match Option::<String>::deserialize(deserializer) {
             Ok(v) => {
-                println!("deserialize - Ok [{:?}]", v);
+                debug!("deserialize - Ok [{:?}]", v);
                 match v {
                     Some(v) => {
                         match ymd_to_localdate(v.as_str()) {
                             Ok(v) => Ok(Some(v)),
                             Err(e) => {
                                 // Err(Error::custom(e.to_string()))
-                                println!("❗️Warning [{}] {}", v, e);
+                                warn!("❗️Warning [{}] {}", v, e);
                                 Ok(None)
                             }
                         }
@@ -148,7 +152,7 @@ mod my_optdate_format {
                 }
             }
             Err(e) => {
-                println!("deserialize - error [{:?}]", e);
+                error!("deserialize - error [{:?}]", e);
                 Err(Error::custom("error"))
             }
         }
@@ -255,7 +259,7 @@ fn example() -> Result<(), Box<dyn Error>> {
         // The iterator yields Result<StringRecord, Error>, so we check the
         // error here.
         let record = result?;
-        println!("{:?}", record);
+        debug!("{:?}", record);
     }
     Ok(())
 }
@@ -286,7 +290,7 @@ fn filecheck(filename: &str) -> Result<&str, io::Error> {
             }
         },
     };
-    println!("file opened.{:?}", filename);
+    debug!("file opened.{:?}", filename);
 
     // f.write_all(b"Hello, world!");
 
@@ -306,7 +310,7 @@ fn filecheck(filename: &str) -> Result<&str, io::Error> {
     // '?'構文
     f.write_all(b"Hello, world!\n")?;
 
-    println!("write_all ok.");
+    debug!("write_all ok.");
 
     // f.sync_data().expect("Problem sync_data:");
     f.sync_data()?; // '?'は、Resultのエラーを伝播する場合に利用する。現在の関数戻り値がResultの場合にOK。
@@ -315,7 +319,7 @@ fn filecheck(filename: &str) -> Result<&str, io::Error> {
                     //     Err(e) => { panic!("Problem sync_data: {:?}", e) },
                     // }
 
-    println!("sync_data ok.");
+    debug!("sync_data ok.");
     return Ok("sync_data ok.");
 }
 
@@ -357,7 +361,7 @@ fn read_csv(filename: &str) -> Result<Vec<User>, io::Error> {
         // The iterator yields Result<StringRecord, Error>, so we check the
         // error here.
         let record = result?;
-        println!("[{}] {:?}", row_number + 1, record);
+        debug!("[{}] {:?}", row_number + 1, record);
 
         // zero dateはout of rangeとなって利用できない。
         // let zeronaive = NaiveDate::from_ymd(0,0,0);
@@ -373,7 +377,7 @@ fn read_csv(filename: &str) -> Result<Vec<User>, io::Error> {
         row_number += 1;
     }
 
-    println!("users={:?}", users);
+    debug!("users={:?}", users);
 
     Ok(users)
 }
@@ -382,11 +386,11 @@ fn research_datetime() {
     // 現在日時
     let local: DateTime<Local> = Local::now();
 
-    println!("now={:?}", local); // now=2022-05-31T10:09:38.930586+09:00
+    debug!("now={:?}", local); // now=2022-05-31T10:09:38.930586+09:00
 
     // フォーマット
     // chrono::format::strftime - Rust https://docs.rs/chrono/0.4.19/chrono/format/strftime/index.html#specifiers
-    println!(
+    debug!(
         "now=[{}]",
         local.format("%Y-%m-%d %H:%M:%S.%3f").to_string()
     ); // now=[2022-05-31 10:18:17.871]
@@ -405,29 +409,29 @@ fn research_datetime() {
     let parsed_dt_nontimezone =
         NaiveDateTime::parse_from_str("2022-05-31 10:21:34", "%Y-%m-%d %H:%M:%S")
             .expect("parse date error.");
-    println!("parsed_dt_nontimezone=[{:?}]", parsed_dt_nontimezone); // parsed_dt_nontimezone=[2022-05-31T10:21:34]
+    debug!("parsed_dt_nontimezone=[{:?}]", parsed_dt_nontimezone); // parsed_dt_nontimezone=[2022-05-31T10:21:34]
 
     // Naive -> DateTime（TimeZone付き）　に変換する
     let parsed_dt = Local.from_local_datetime(&parsed_dt_nontimezone).unwrap();
-    println!("parsed_dt=[{:?}]", parsed_dt); // parsed_dt=[2022-05-31T10:21:34+09:00]
+    debug!("parsed_dt=[{:?}]", parsed_dt); // parsed_dt=[2022-05-31T10:21:34+09:00]
 
     // UTCにする場合はこちら
     let parsed_utcdt = Utc.from_local_datetime(&parsed_dt_nontimezone).unwrap();
-    println!("parsed_utcdt=[{:?}]", parsed_utcdt); // parsed_utcdt=[2022-05-31T10:21:34Z]
+    debug!("parsed_utcdt=[{:?}]", parsed_utcdt); // parsed_utcdt=[2022-05-31T10:21:34Z]
 
     // TimeZone時間指定の場合ははこちら
     let parsed_offsetdt = FixedOffset::east(9 * 3600)
         .from_local_datetime(&parsed_dt_nontimezone)
         .unwrap();
-    println!("parsed_offsetdt=[{:?}]", parsed_offsetdt); // parsed_offsetdt=[2022-05-31T10:21:34+09:00]
+    debug!("parsed_offsetdt=[{:?}]", parsed_offsetdt); // parsed_offsetdt=[2022-05-31T10:21:34+09:00]
 
     // util.rsに関数化(DateTime)
     let localdttime = util::ymdhms_to_localdatetime("2022-05-31 10:21:34").unwrap();
-    println!("toYMD_HMS_ToLocalTime=[{:?}]", localdttime);
+    debug!("toYMD_HMS_ToLocalTime=[{:?}]", localdttime);
 
     // util.rsに関数化(Date)
     let localdt = ymd_to_localdate("2022-05-31").unwrap();
-    println!("toYMD_ToLocalDate=[{:?}]", localdt);
+    debug!("toYMD_ToLocalDate=[{:?}]", localdt);
 }
 
 #[allow(dead_code)] // suppress "function is never used" warning.
@@ -451,14 +455,14 @@ fn regexp_exam() {
 
     // Match
     let re_match = RE_YMD.is_match("2014-01-01");
-    println!("re.is_match={:?}", re_match);
+    debug!("re.is_match={:?}", re_match);
 
     print_divider!("   ");
 
     // caputure
     let text = "2012-03-14, 2013-01-01 and 2014-07-05";
     for cap in RE_YMD.captures_iter(text) {
-        println!("Month: {} Day: {} Year: {}", &cap[2], &cap[3], &cap[1]);
+        debug!("Month: {} Day: {} Year: {}", &cap[2], &cap[3], &cap[1]);
     }
 
     print_divider!("   ");
@@ -469,8 +473,8 @@ fn regexp_exam() {
     // Cow in alloc::borrow - Rust https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html
     //
     let after = re.replace_all(before, "$m/$d/$y");
-    println!("replace_all before=[{}]", before);
-    println!("replace_all after =[{}]", after);
+    debug!("replace_all before=[{}]", before);
+    debug!("replace_all after =[{}]", after);
     assert_eq!(after, "03/14/2012, 01/01/2013 and 07/05/2014");
 }
 
@@ -478,15 +482,15 @@ fn hashmap_exam(users: Vec<User>) -> HashMap<String, User> {
     let mut map_users: HashMap<String, User> = HashMap::new();
 
     for user in users {
-        println!("[{:2}],[{}]", user.no, user.name);
+        debug!("[{:2}],[{}]", user.no, user.name);
         map_users.insert(user.name.clone(), user);
     }
 
     let oneuser = map_users.get("ＴＥＳＴ　ＴＡＲＯＵ");
-    println!("hashmap_get = {:?}", oneuser);
+    debug!("hashmap_get = {:?}", oneuser);
 
     let oneuser2 = map_users.get("hogehoge");
-    println!("hashmap_get(not found) = {:?}", oneuser2);
+    debug!("hashmap_get(not found) = {:?}", oneuser2);
 
     map_users
 }
@@ -495,7 +499,7 @@ fn json_exam_users(_users: Vec<User>) {}
 fn json_exam_mystruct() {
     // let john = json!(users);
 
-    // println!("users json = [{:?}]", john);
+    // debug!("users json = [{:?}]", john);
 
     let datas: Vec<MyPrimitive> = vec![
         MyPrimitive {
@@ -512,9 +516,9 @@ fn json_exam_mystruct() {
         },
     ];
     let data_json = json!(datas);
-    println!("MyPrimitive json = [{:?}]", data_json);
-    println!("MyPrimitive json string = [{:?}]", data_json.to_string());
-    println!(
+    debug!("MyPrimitive json = [{:?}]", data_json);
+    debug!("MyPrimitive json string = [{:?}]", data_json.to_string());
+    debug!(
         "MyPrimitive json string_pretty = [{:?}]",
         serde_json::to_string_pretty(&data_json).unwrap()
     );
@@ -524,9 +528,9 @@ fn json_exam_datetime() {
     let datas = Local.ymd(2022, 05, 31).and_hms(12, 29, 9);
 
     let data_json = json!(datas);
-    println!("datetime json = [{:?}]", data_json);
-    println!("datetime json string = [{:?}]", data_json.to_string());
-    println!(
+    debug!("datetime json = [{:?}]", data_json);
+    debug!("datetime json string = [{:?}]", data_json.to_string());
+    debug!(
         "datetime json string_pretty = [{:?}]",
         serde_json::to_string_pretty(&data_json).unwrap()
     );
@@ -536,9 +540,9 @@ fn json_exam_datetime() {
 //     let datas = ymd_to_localdate("2022-05-31").unwrap();
 
 //     let data_json = json!(datas);
-//     println!("datetime json = [{:?}]", data_json);
-//     println!("datetime json string = [{:?}]", data_json.to_string());
-//     println!(
+//     debug!("datetime json = [{:?}]", data_json);
+//     debug!("datetime json string = [{:?}]", data_json.to_string());
+//     debug!(
 //         "datetime json string_pretty = [{:?}]",
 //         serde_json::to_string_pretty(&data_json).unwrap()
 //     );
@@ -555,9 +559,9 @@ fn json_exam_datestruct() {
     ];
 
     let data_json = json!(datas);
-    println!("datestruct json = [{:?}]", data_json);
-    println!("datestruct json string = [{:?}]", data_json.to_string());
-    println!(
+    debug!("datestruct json = [{:?}]", data_json);
+    debug!("datestruct json string = [{:?}]", data_json.to_string());
+    debug!(
         "datestruct json string_pretty = [{:?}]",
         serde_json::to_string_pretty(&data_json).unwrap()
     );
@@ -571,12 +575,12 @@ fn json_exam_datestruct() {
         ]"#;
 
     let v: Vec<MyDateStruct> = serde_json::from_str(srcstr).unwrap();
-    println!("datestruct json string_pretty = [{:?}]", v);
+    debug!("datestruct json string_pretty = [{:?}]", v);
 }
 
 // in_filename の拡張子を.outにして、書き出すサンプル。
 fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
-    println!("fileread_write in:[{}]", in_fname);
+    debug!("fileread_write in:[{}]", in_fname);
 
     // infile
     let f_in = File::options().read(true).open(in_fname)?;
@@ -585,7 +589,7 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
     // out
     let mut out_fname = String::from(in_fname);
     out_fname += ".out";
-    println!("fileread_write out:[{}]", out_fname);
+    debug!("fileread_write out:[{}]", out_fname);
     let f_out = File::create(out_fname)?;
 
     let mut writer = BufWriter::new(f_out);
@@ -594,7 +598,7 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
 
     while reader.read_line(&mut line)? > 0 {
         let line_trimed = line.trim_end();
-        println!("line = [{}]", line_trimed);
+        debug!("line = [{}]", line_trimed);
         writer.write(line.as_bytes());
         line.clear(); // read_line はappendするので１行ずつの場合はクリアする。
     }
@@ -603,15 +607,27 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
+    let env = Env::default()
+        .filter_or("MY_LOG_LEVEL", "trace")
+        .write_style_or("MY_LOG_STYLE", "always");
+
+    env_logger::init_from_env(env);
+
+    trace!("some trace log");
+    debug!("some debug log");
+    info!("some information log");
+    warn!("some warning log");
+    error!("some error log");
+
     // DateTimeの扱いの検証
     research_datetime();
 
     // 引数の扱いの検証
     let args: Vec<String> = env::args().collect();
-    println!("{:?}", args);
+    debug!("{:?}", args);
 
     if args.len() == 1 {
-        println!("usage:csvexam filename");
+        info!("usage:csvexam filename");
         process::exit(1);
     }
     let filename = &args[1];
@@ -639,13 +655,13 @@ fn main() {
     let mut users = read_csv(&filename).unwrap();
 
     print_divider!("sort");
-    println!("before sort users = {:?}", users);
+    debug!("before sort users = {:?}", users);
     // let users_sorted = sort_users(users);
     // println!("after sort users = {:?}",users_sorted);
 
     // rust - Passing a Vec into a function by reference - Stack Overflow https://stackoverflow.com/questions/24102615/passing-a-vec-into-a-function-by-reference
     sort_users_ref(&mut users);
-    println!("after sort(ref) users = {:?}", users);
+    debug!("after sort(ref) users = {:?}", users);
 
     // Regular expression examine.
     print_divider!("Regular expression");
@@ -655,7 +671,7 @@ fn main() {
     print_divider!("HashMap");
     // HashMapにmoveされるので、to_vecでcloneを作っておく。
     let map_users = hashmap_exam(users.to_vec());
-    println!("map_users={:?}", map_users);
+    debug!("map_users={:?}", map_users);
 
     // JSON examine.
     print_divider!("JSON");
@@ -668,7 +684,7 @@ fn main() {
     match fileread_write(filename) {
         Ok(v) => v,
         Err(e) => {
-            println!("fileread_write error {:?}", e)
+            error!("fileread_write error {:?}", e)
         }
     }
 
