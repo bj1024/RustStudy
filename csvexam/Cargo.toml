@@ -47,4 +47,6 @@ time = { version = "0.3.7", features = ["formatting", "macros"] }
 # log4rs 1.1.1 - Docs.rs https://docs.rs/crate/log4rs/1.1.1
 # log4rs = "1.1.1"
 
-
+# config - crates.io: Rust Package Registry https://crates.io/crates/config
+# MIT OR Apache-2.0 
+config = "0.13.1"
