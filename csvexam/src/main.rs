@@ -624,7 +624,7 @@ fn main() {
         ))
         .build();
 
-    let settings = config::Config::builder()
+    let app_config = config::Config::builder()
         // Add in `./Settings.toml`
         .add_source(config::File::with_name("app.toml"))
         // Add in settings from the environment (with a prefix of APP)
@@ -633,23 +633,55 @@ fn main() {
         .build()
         .unwrap();
 
-    println!(
-        "{:?}",
-        settings
-            .try_deserialize::<HashMap<String, String>>()
-            .unwrap(),
+    // println!(
+    //     "{:?}",
+    //     settings
+    //         .try_deserialize::<HashMap<String, String>>()
+    //         .unwrap(),
+    // );
+
+    // .intoは型推論で目的の型にCASTする。
+    let log_dir = app_config
+        .get_string("log_dir")
+        .unwrap_or_else(|_| String::from(""));
+
+    let log_level = app_config
+        .get_string("log_level")
+        .unwrap_or_else(|_| String::from(""))
+        .to_lowercase();
+
+    // .get_bool("debug")
+    // .unwrap_or_else(|_| false.into());
+    // let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "Development".into());
+
+    println!("config log_dir=[{}]", log_dir);
+    println!("config log_level=[{}]", log_level);
+
+    let logfname = format!(
+        "{}/app{}.log",
+        log_dir,
+        Local::now().format("%Y%m%d").to_string()
     );
 
-    let logfname = format!("log/app{}.log", Local::now().format("%Y%m%d").to_string());
+    let level_filter = match log_level.as_str() {
+        "off" => LevelFilter::Off,
+        "error" => LevelFilter::Error,
+        "warn" => LevelFilter::Warn,
+        "info" => LevelFilter::Info,
+        "debug" => LevelFilter::Debug,
+        "trace" => LevelFilter::Trace,
+        _ => LevelFilter::Info, //default value
+    };
+
     CombinedLogger::init(vec![
         TermLogger::new(
-            LevelFilter::Debug,
+            level_filter,
             log_config.clone(),
             TerminalMode::Mixed,
             ColorChoice::Auto,
         ),
         WriteLogger::new(
-            LevelFilter::Debug,
+            level_filter,
             log_config.clone(),
             File::create(logfname).unwrap(),
         ),

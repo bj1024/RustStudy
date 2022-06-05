@@ -1,3 +1,6 @@
-debug = false
-priority = 32
-key = "189rjfadoisfj8923fjio"
+
+# log output dir
+log_dir="./log/"
+
+# log level. Off,Error,Warn,Info,Debug,Trace,
+log_level = "Debug"
