@@ -392,6 +392,7 @@ fn read_csv(filename: &str) -> Result<Vec<User>, io::Error> {
     Ok(users)
 }
 
+/// datetimeを調査するための関数。
 fn research_datetime() {
     // 現在日時
     let local: DateTime<Local> = Local::now();
@@ -640,7 +641,7 @@ fn path_exam() {
     let current_exe = env::current_exe().unwrap();
     debug!("current exe ={:?}", current_exe);
     debug!("current extension ={:?}", current_exe.extension());
-    debug!("current file_name ={:?}", current_exe.file_name());
+    debug!("currenst file_name ={:?}", current_exe.file_name());
     debug!("current file_stem ={:?}", current_exe.file_stem());
     debug!("current has_root ={:?}", current_exe.has_root());
     debug!("current has_root ={:?}", current_exe.parent());
@@ -661,6 +662,33 @@ fn path_exam() {
         None => panic!("new path is not a valid UTF-8 sequence"),
         Some(s) => debug!("new path is {}", s),
     }
+}
+
+fn code_conv(in_fname: &str) -> Result<(), Box<dyn Error>> {
+    debug!("code_conv in:[{}]", in_fname);
+
+    // infile
+    let f_in = File::options().read(true).open(in_fname)?;
+    let mut reader = BufReader::new(f_in);
+
+    // out
+    let mut out_fname = String::from(in_fname);
+    out_fname += ".out";
+    debug!("fileread_write out:[{}]", out_fname);
+    let f_out = File::create(out_fname)?;
+
+    let mut writer = BufWriter::new(f_out);
+
+    let mut line = String::new();
+
+    while reader.read_line(&mut line)? > 0 {
+        let line_trimed = line.trim_end();
+        debug!("line = [{}]", line_trimed);
+        writer.write(line.as_bytes())?;
+        line.clear(); // read_line はappendするので１行ずつの場合はクリアする。
+    }
+
+    Ok(())
 }
 
 fn main() {
@@ -809,8 +837,10 @@ fn main() {
     }
 
     log_divider!("Path");
-
     path_exam();
+
+    log_divider!("CodeConv");
+    code_conv();
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
