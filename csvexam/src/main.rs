@@ -2,6 +2,8 @@
 extern crate log;
 extern crate simplelog;
 
+use std::path::Path;
+
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
@@ -29,7 +31,7 @@ use crate::util::ymd_to_localdate;
 
 mod util;
 
-macro_rules! print_divider {
+macro_rules! log_divider {
     ($prefix:literal) => {
         info!("");
         info!("---------- {} ----------", $prefix);
@@ -465,7 +467,7 @@ fn regexp_exam() {
     let re_match = RE_YMD.is_match("2014-01-01");
     debug!("re.is_match={:?}", re_match);
 
-    print_divider!("   ");
+    log_divider!("   ");
 
     // caputure
     let text = "2012-03-14, 2013-01-01 and 2014-07-05";
@@ -473,7 +475,7 @@ fn regexp_exam() {
         debug!("Month: {} Day: {} Year: {}", &cap[2], &cap[3], &cap[1]);
     }
 
-    print_divider!("   ");
+    log_divider!("   ");
     // replace
     let re = Regex::new(r"(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})").unwrap();
     let before = "2012-03-14, 2013-01-01 and 2014-07-05";
@@ -615,6 +617,52 @@ fn fileread_write(in_fname: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn path_exam() {
+    // Path - Rust By Example 日本語版 https://doc.rust-jp.rs/rust-by-example-ja/std_misc/path.html
+
+    // Create a `Path` from an `&'static str`
+    // `&'static str`から`Path`を作成
+    let path = Path::new(".");
+
+    debug!("Path::new(\".\")={:?}", path);
+
+    // The `display` method returns a `Display`able structure
+    // `display`メソッドは`Display`可能な構造体を返す。
+    let _display = path.display();
+    debug!("path.display()={:?}", _display);
+
+    // std::path::absolute はまだExperimental（Rust 1.61）
+    debug!("path ={:?}", path);
+
+    debug!("current dir ={:?}", env::current_dir().unwrap());
+    debug!("current OS ={:?}", env::consts::OS); // "macos"
+
+    let current_exe = env::current_exe().unwrap();
+    debug!("current exe ={:?}", current_exe);
+    debug!("current extension ={:?}", current_exe.extension());
+    debug!("current file_name ={:?}", current_exe.file_name());
+    debug!("current file_stem ={:?}", current_exe.file_stem());
+    debug!("current has_root ={:?}", current_exe.has_root());
+    debug!("current has_root ={:?}", current_exe.parent());
+    debug!("current is_file={:?}", current_exe.is_file());
+    debug!("current is_dir={:?}", current_exe.is_dir());
+
+    let current_exe_metadata = current_exe.metadata().unwrap(); // Timestamp など。
+    debug!("current metadata={:?}", current_exe_metadata);
+    debug!("current metadata(len)={:?}", current_exe_metadata.len());
+
+    debug!("has_root(./) ={:?}", Path::new("./").has_root());
+
+    let passwd_path = Path::new("/etc").join("passwd");
+
+    // Convert the path into a string slice
+    // パスを文字列のスライスに変換する。
+    match passwd_path.to_str() {
+        None => panic!("new path is not a valid UTF-8 sequence"),
+        Some(s) => debug!("new path is {}", s),
+    }
+}
+
 fn main() {
     // 時刻のフォーマットは、ここを参照。
     // Format description - Time https://time-rs.github.io/book/api/format-description.html
@@ -710,23 +758,23 @@ fn main() {
     //     Err(e) => { panic!("Problem filecheck: {:?}", e) },
     // }
 
-    print_divider!("");
+    log_divider!("");
 
     // void的な関数
 
     let _ = funcret01();
 
-    print_divider!("file read");
+    log_divider!("file read");
 
     // file read
     let _ = read_file(&filename);
 
-    print_divider!("csv read");
+    log_divider!("csv read");
 
     // csv read
     let mut users = read_csv(&filename).unwrap();
 
-    print_divider!("sort");
+    log_divider!("sort");
     debug!("before sort users = {:?}", users);
     // let users_sorted = sort_users(users);
     // println!("after sort users = {:?}",users_sorted);
@@ -736,29 +784,33 @@ fn main() {
     debug!("after sort(ref) users = {:?}", users);
 
     // Regular expression examine.
-    print_divider!("Regular expression");
+    log_divider!("Regular expression");
     regexp_exam();
 
     // HashMap examine.
-    print_divider!("HashMap");
+    log_divider!("HashMap");
     // HashMapにmoveされるので、to_vecでcloneを作っておく。
     let map_users = hashmap_exam(users.to_vec());
     debug!("map_users={:?}", map_users);
 
     // JSON examine.
-    print_divider!("JSON");
+    log_divider!("JSON");
     json_exam_mystruct();
     json_exam_datetime();
     json_exam_datestruct();
 
     // File read write examine.
-    print_divider!("File read/write.");
+    log_divider!("File read/write.");
     match fileread_write(filename) {
         Ok(v) => v,
         Err(e) => {
             error!("fileread_write error {:?}", e)
         }
     }
+
+    log_divider!("Path");
+
+    path_exam();
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
