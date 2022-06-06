@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
 use std::io::{ErrorKind, Write};
 use std::process::{self};
+use std::str::FromStr;
 use std::{env, fmt, io};
 
 use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
@@ -18,6 +19,7 @@ use log::{Level, LevelFilter};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
 use simplelog::{
     format_description, Color, ColorChoice, CombinedLogger, Config, ConfigBuilder, TermLogger,
     TerminalMode, WriteLogger,
@@ -664,13 +666,8 @@ fn main() {
     );
 
     let level_filter = match log_level.as_str() {
-        "off" => LevelFilter::Off,
-        "error" => LevelFilter::Error,
-        "warn" => LevelFilter::Warn,
-        "info" => LevelFilter::Info,
-        "debug" => LevelFilter::Debug,
-        "trace" => LevelFilter::Trace,
-        _ => LevelFilter::Info, //default value
+        "" => log::LevelFilter::Info,
+        _ => log::LevelFilter::from_str(log_level.as_str()).expect("illegal config log string."),
     };
 
     CombinedLogger::init(vec![
