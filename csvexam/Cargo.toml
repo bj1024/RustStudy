@@ -53,3 +53,10 @@ time = { version = "0.3.7", features = ["formatting", "macros"] }
 config = "0.13.1"
 
 
+
+# percent_encoding::utf8_percent_encode - Rust https://docs.rs/percent-encoding/2.1.0/percent_encoding/fn.utf8_percent_encode.html
+percent-encoding="2.1.0"
+
+
+# marshallpierce/rust-base64: base64, in rust https://github.com/marshallpierce/rust-base64
+base64 = "0.13.0"

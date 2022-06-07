@@ -16,8 +16,10 @@ use std::{env, fmt, io};
 use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
 // use env_logger::Env;
+// use base64::{decode, encode};
 use lazy_static::lazy_static;
 use log::{Level, LevelFilter};
+use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -28,6 +30,8 @@ use simplelog::{
 };
 
 use crate::util::ymd_to_localdate;
+
+// use base64::{decode, encode};
 
 mod util;
 
@@ -664,6 +668,35 @@ fn path_exam() {
     }
 }
 
+fn base64_exam() {
+    let hello = b"hello rustaceans";
+    let encoded = base64::encode(hello);
+    let decoded = base64::decode(&encoded).unwrap();
+
+    debug!("origin: {}", std::str::from_utf8(hello).unwrap());
+    debug!("base64 encoded: {}", encoded);
+    debug!("back to origin: {}", std::str::from_utf8(&decoded).unwrap());
+
+    // Ok(())
+}
+
+fn percent_encoding_exam() {
+    let input = "confident, productive systems programming";
+    debug!("utf8_percent_encode x");
+
+    // ここに追加した文字がエスケープされる。
+    const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
+    let iter = utf8_percent_encode(input, FRAGMENT);
+    let encoded: String = iter.collect();
+    // assert_eq!(encoded, "confident,%20productive%20systems%20programming");
+    debug!("encoded=[{:?}]", encoded);
+
+    let iter = percent_decode(encoded.as_bytes());
+    let decoded = iter.decode_utf8().unwrap();
+    // assert_eq!(decoded, "confident, productive systems programming");
+    debug!("decoded=[{:?}]", decoded);
+}
+
 fn code_conv(in_fname: &str) -> Result<(), Box<dyn Error>> {
     debug!("code_conv in:[{}]", in_fname);
 
@@ -839,8 +872,14 @@ fn main() {
     log_divider!("Path");
     path_exam();
 
-    log_divider!("CodeConv");
-    code_conv();
+    // log_divider!("CodeConv");
+    // code_conv();
+
+    log_divider!("percent_encoding_exam");
+    percent_encoding_exam();
+
+    log_divider!("base64_exam");
+    base64_exam();
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
