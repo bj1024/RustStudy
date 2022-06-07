@@ -2,7 +2,8 @@
 extern crate log;
 extern crate simplelog;
 
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -17,13 +18,13 @@ use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 
 // use env_logger::Env;
 // use base64::{decode, encode};
+use encoding_rs;
 use lazy_static::lazy_static;
 use log::{Level, LevelFilter};
 use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
 use simplelog::{
     format_description, Color, ColorChoice, CombinedLogger, Config, ConfigBuilder, TermLogger,
     TerminalMode, WriteLogger,
@@ -698,26 +699,46 @@ fn percent_encoding_exam() {
 }
 
 fn code_conv(in_fname: &str) -> Result<(), Box<dyn Error>> {
-    debug!("code_conv in:[{}]", in_fname);
+    debug!("code_conv in :[{}]", in_fname);
 
     // infile
-    let f_in = File::options().read(true).open(in_fname)?;
+    let in_path = Path::new(in_fname);
+
+    let f_in = File::options().read(true).open(in_path)?;
     let mut reader = BufReader::new(f_in);
 
     // out
-    let mut out_fname = String::from(in_fname);
-    out_fname += ".out";
-    debug!("fileread_write out:[{}]", out_fname);
-    let f_out = File::create(out_fname)?;
+    let fname_base = in_path.file_stem().unwrap();
+    let fname_ext = in_path.extension().unwrap();
+    // let fname_path = Path::new(fname_base).join(
+    //     Path::new("_sjis")
+    // ).join(
+    //     fname_ext
+    // )
 
+    let mut out_path = PathBuf::new();
+    if let Some(parent) = in_path.parent() {
+        out_path.push(parent)
+    }
+
+    let out_fname = format!(
+        "{}_sjis.{}",
+        in_path.file_stem().unwrap().to_str().unwrap(),
+        in_path.extension().unwrap().to_str().unwrap()
+    );
+    out_path.push(Path::new(out_fname.as_str()));
+
+    debug!("code_conv out:[{:?}]", out_path);
+
+    let f_out = File::create(out_path)?;
     let mut writer = BufWriter::new(f_out);
-
     let mut line = String::new();
-
     while reader.read_line(&mut line)? > 0 {
-        let line_trimed = line.trim_end();
-        debug!("line = [{}]", line_trimed);
-        writer.write(line.as_bytes())?;
+        // let line_trimed = line.trim_end();
+        // debug!("line = [{}]", line_trimed);
+        let (res, _, _) = encoding_rs::SHIFT_JIS.encode(&line);
+        let text = res.into_owned();
+        writer.write(&text)?;
         line.clear(); // read_line はappendするので１行ずつの場合はクリアする。
     }
 
@@ -872,14 +893,14 @@ fn main() {
     log_divider!("Path");
     path_exam();
 
-    // log_divider!("CodeConv");
-    // code_conv();
-
     log_divider!("percent_encoding_exam");
     percent_encoding_exam();
 
     log_divider!("base64_exam");
     base64_exam();
+
+    log_divider!("CodeConv");
+    code_conv(&filename);
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);

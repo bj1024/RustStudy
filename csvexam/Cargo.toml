@@ -60,3 +60,10 @@ percent-encoding="2.1.0"
 
 # marshallpierce/rust-base64: base64, in rust https://github.com/marshallpierce/rust-base64
 base64 = "0.13.0"
+
+
+# encoding_rs - Rust https://docs.rs/encoding_rs/latest/encoding_rs/
+# std::io traitで利用したい場合（std::io::Read）は、encoding_rs_io  を使うこと。
+
+encoding_rs="0.8.31"
+
