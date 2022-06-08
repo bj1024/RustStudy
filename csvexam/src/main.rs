@@ -954,8 +954,9 @@ fn main() {
 
     log_divider!("ReadUsersFromCSV");
     let users_csv = read_users_from_csv(&filename).unwrap();
-
-    users_to_jsonfile(&users_csv,"users_out.json");
+    let mut out_json_filename = PathBuf::from(filename);
+    out_json_filename.set_extension("json");
+    users_to_jsonfile(&users_csv,&out_json_filename.to_string_lossy());
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);
