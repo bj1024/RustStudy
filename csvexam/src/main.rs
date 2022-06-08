@@ -2,7 +2,6 @@
 extern crate log;
 extern crate simplelog;
 
-use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
 use std::collections::HashMap;
@@ -20,14 +19,13 @@ use chrono::{Date, DateTime, FixedOffset, Local, NaiveDateTime, TimeZone, Utc};
 // use base64::{decode, encode};
 use encoding_rs;
 use lazy_static::lazy_static;
-use log::{Level, LevelFilter};
 use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use simplelog::{
-    format_description, Color, ColorChoice, CombinedLogger, Config, ConfigBuilder, TermLogger,
-    TerminalMode, WriteLogger,
+    format_description, ColorChoice, CombinedLogger, ConfigBuilder, TermLogger, TerminalMode,
+    WriteLogger,
 };
 
 use crate::util::ymd_to_localdate;
@@ -157,7 +155,7 @@ mod my_optdate_format {
                             Ok(v) => Ok(Some(v)),
                             Err(e) => {
                                 // Err(Error::custom(e.to_string()))
-                                warn!("❗️Warning [{}] {}", v, e);
+                                warn!("❗️Warning ymd_to_localdate failed.[{}] {}", v, e);
                                 Ok(None)
                             }
                         }
@@ -200,16 +198,14 @@ struct MyDateStruct {
     dt: Option<Date<Local>>,
 }
 
-// #[derive(Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 struct User {
     no: i32,
     name: String,
     kana: String,
     gender: String,
     phone: String,
-
-    // #[serde(with = "my_optdate_format")]
+    #[serde(with = "my_optdate_format")]
     birth: Option<Date<Local>>, // Option None,またはTを格納したオプショナル
 }
 
@@ -745,6 +741,60 @@ fn code_conv(in_fname: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+
+// CSVからUser配列を作る。(serdeによるdeserializeを利用する。)
+fn read_users_from_csv(in_fname: &str) -> Result<Vec<User>, Box<dyn Error>> {
+    let f = File::open(in_fname).expect(format!("file open error.[{}]", in_fname).as_str());
+
+    let reader = BufReader::new(f);
+
+    // csv::cookbook - Rust https://docs.rs/csv/1.1.6/csv/cookbook/index.html
+    // has_headersは、ヘッダのカラムを見てフィールドと一致させてしまうのでOFFにする。
+    // OFFだと、structのメンバ順にセットされる模様。
+    let mut csvrdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .delimiter(b',')
+        .from_reader(reader);
+
+    let mut row_number = 0;
+
+    let mut users: Vec<User> = Vec::new();
+
+    for result in csvrdr.deserialize() {
+        let record: User = match result {
+            Ok(v) => v,
+            Err(e) => {
+                error!("deserialize result: {}", e);
+                continue;
+            }
+        };
+        debug!("[{}] {:?}", row_number + 1, record);
+        users.push(record);
+        row_number += 1;
+    }
+
+    
+    debug!("users={:?}", users);
+    Ok(users)
+}
+
+// in_filename の拡張子を.outにして、書き出すサンプル。
+fn users_to_jsonfile(users:&Vec<User>,fname: &str) -> Result<(), Box<dyn Error>> {
+    debug!("users_to_jsonfile [{}]", fname);
+    let f_out = File::create(fname)?;
+
+    let data_json = json!(users);
+    let json_str = serde_json::to_string_pretty(&data_json).unwrap();
+    debug!("users json={}", json_str);
+
+    let mut writer = BufWriter::new(f_out);
+
+    writer.write(json_str.as_bytes())?;
+
+    Ok(())
+}
+
+
 fn main() {
     // 時刻のフォーマットは、ここを参照。
     // Format description - Time https://time-rs.github.io/book/api/format-description.html
@@ -901,6 +951,11 @@ fn main() {
 
     log_divider!("CodeConv");
     code_conv(&filename);
+
+    log_divider!("ReadUsersFromCSV");
+    let users_csv = read_users_from_csv(&filename).unwrap();
+
+    users_to_jsonfile(&users_csv,"users_out.json");
 
     // if let Err(err) = example() {
     //     println!("error running example: {}", err);

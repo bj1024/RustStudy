@@ -44,7 +44,11 @@ pub fn ymdhms_to_localdatetime(date_str: &str) -> Result<DateTime<Local>, String
 // }
 
 pub fn ymd_to_localdate(date_str: &str) -> Result<Date<Local>, Box<dyn Error>> {
-    to_localdate_with_format(date_str, "%Y-%m-%d")
+    return match to_localdate_with_format(date_str, "%Y-%m-%d"){
+        Ok(v)=> Ok(v),
+        Err(_)=>to_localdate_with_format(date_str, "%Y/%m/%d")
+    }
+
 }
 
 pub fn to_localdate_with_format_opt(date_str: &str, fortmat: &str) -> Option<Date<Local>> {
@@ -112,6 +116,9 @@ pub fn to_localdate_with_format(
 //   }
 
 // }
+
+
+
 
 #[test]
 fn test_to_localdate_with_format() {
