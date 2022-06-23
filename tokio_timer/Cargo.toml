@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 # tokio-rs/tokio: A runtime for writing reliable asynchronous applications with Rust. Provides I/O, networking, scheduling, timers, ... https://github.com/tokio-rs/tokio#readme
 tokio = { version = "1.19.2", features = ["full"] }
+log = "0.4"
+env_logger = "0.9.0"
