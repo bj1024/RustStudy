@@ -1,0 +1,10 @@
+[package]
+name = "tokio_taskmessage"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# tokio-rs/tokio: A runtime for writing reliable asynchronous applications with Rust. Provides I/O, networking, scheduling, timers, ... https://github.com/tokio-rs/tokio#readme
+tokio = { version = "1.19.2", features = ["full"] }
