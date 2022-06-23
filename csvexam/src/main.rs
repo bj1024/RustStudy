@@ -704,8 +704,8 @@ fn code_conv(in_fname: &str) -> Result<(), Box<dyn Error>> {
     let mut reader = BufReader::new(f_in);
 
     // out
-    let fname_base = in_path.file_stem().unwrap();
-    let fname_ext = in_path.extension().unwrap();
+    // let fname_base = in_path.file_stem().unwrap();
+    // let fname_ext = in_path.extension().unwrap();
     // let fname_path = Path::new(fname_base).join(
     //     Path::new("_sjis")
     // ).join(
@@ -793,7 +793,6 @@ fn users_to_jsonfile(users:&Vec<User>,fname: &str) -> Result<(), Box<dyn Error>>
 
     Ok(())
 }
-
 
 fn main() {
     // 時刻のフォーマットは、ここを参照。
@@ -950,16 +949,23 @@ fn main() {
     base64_exam();
 
     log_divider!("CodeConv");
-    code_conv(&filename);
+    let _ = code_conv(&filename);
 
     log_divider!("ReadUsersFromCSV");
-    let users_csv = read_users_from_csv(&filename).unwrap();
-    let mut out_json_filename = PathBuf::from(filename);
+    let users_csv
+        = read_users_from_csv(&filename)
+        .unwrap();
+    let
+        mut out_json_filename = PathBuf::from(filename);
     out_json_filename.set_extension("json");
-    users_to_jsonfile(&users_csv,&out_json_filename.to_string_lossy());
 
-    // if let Err(err) = example() {
-    //     println!("error running example: {}", err);
-    //     process::exit(1);
-    // }
+    let _ = users_to_jsonfile(&users_csv, &out_json_filename.to_string_lossy());
+
+
+//   log_divider!("test")
+
+// if let Err(err) = example() {
+//     println!("error running example: {}", err);
+//     process::exit(1);
+// }
 }
