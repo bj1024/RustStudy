@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use env_logger::Env;
 
 use log::{debug, info};
@@ -25,6 +28,8 @@ fn main() {
 
     // let boxi = Box::new(1);
     box_ptr_test();
+
+    smart_pointer_test();
 }
 
 // Boxは共有しない用途。
@@ -65,3 +70,15 @@ fn box_ptr_test() {
         debug!("my_speedptr= {}", *my_speedptr);
     }
 }
+
+fn smart_pointer_test() {
+    let rc_point = Rc::new(RefCell::new(Point3D::new(1, 2, 3)));
+    // use_point(Rc::clone(&rc_point));
+    // dbg!(rc_point.borrow());
+    debug!("point={:?}", rc_point.borrow());
+    *(rc_point.borrow_mut()) += Point3D::new(10, 20, 30);
+    debug!("point after borrow_mut={:?}", rc_point);
+}
+// fn use_point(rc_point: Rc<RefCell<Point3D>>) {
+//     debug!("point in func={:?}", rc_point);
+// }

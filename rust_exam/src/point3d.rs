@@ -9,6 +9,7 @@ pub struct Point3D {
     pub y: i32,
     pub z: i32,
 }
+
 impl Point3D {
     pub fn new(x: i32, y: i32, z: i32) -> Point3D {
         Point3D { x, y, z }
