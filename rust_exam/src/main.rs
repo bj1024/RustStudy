@@ -24,14 +24,14 @@ fn main() {
     info!("start. [{}]", prog());
 
     // let boxi = Box::new(1);
-    box_clonetest();
+    box_ptr_test();
 }
 
 // Boxは共有しない用途。
 // 所有権を渡しながら使う単なる変数。
 // 共有利用の場合は、Arc, Rc, RefCellを使う。
 
-fn box_clonetest() {
+fn box_ptr_test() {
     let mut box1: Box<Point3D> = Box::new(Point3D::new(1, 2, 3));
     let box2 = box1.clone();
     // let box2: Box<i32> = Box::new(*box1 + 1.into());
