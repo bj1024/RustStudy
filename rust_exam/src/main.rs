@@ -3,6 +3,7 @@ use env_logger::Env;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 
+use rust_exam::Point3D;
 use std::env;
 use std::ffi::OsStr;
 use std::path::Path;
@@ -39,17 +40,6 @@ fn threadsig() -> String {
     // name
 }
 
-struct Point3D {
-    x: i32,
-    y: i32,
-    z: i32,
-}
-impl Point3D {
-    fn new(x: i32, y: i32, z: i32) -> Point3D {
-        Point3D { x, y, z }
-    }
-}
-
 fn main() {
     let env = Env::default()
         .filter_or("MY_LOG_LEVEL", "debug")
@@ -66,9 +56,43 @@ fn main() {
     info!("start. [{}]", prog());
 
     // let boxi = Box::new(1);
-    // box_test();
+    box_clonetest();
 }
 
 fn type_of<T>(_: &T) -> String {
     return std::any::type_name::<T>().to_string();
+}
+
+fn box_clonetest() {
+    let mut box1: Box<Point3D> = Box::new(Point3D::new(1, 2, 3));
+    let box2 = box1.clone();
+    // let box2: Box<i32> = Box::new(*box1 + 1.into());
+    // box1.x += 1;
+    // box1.y += 1;
+    // box1.z += 1;
+
+    *box1 += Point3D::new(10, 20, 30);
+
+    // Primitive Type pointer
+    // pointer - Rust https://doc.rust-lang.org/std/primitive.pointer.html#common-ways-to-create-raw-pointers
+
+    // let handle_ptr: *const Handle = &*box1;
+    debug!("box1={}", box1);
+    debug!("box2={}", box2);
+
+    // let ptr1 = Box::into_raw(box1);
+    // let ptr2 = Box::into_raw(box2);
+    // debug!("box1={} {:p}", *box1, *box1);
+    // debug!("box2={} {:p}", *box2, ptr2);
+
+    // box1 = Box::new(*box1 + 1);
+    let box1ptr = Box::into_raw(box1);
+    *box1 += Point3D::new(10, 20, 30);
+
+    let my_speed: Box<i32> = Box::new(88);
+    let my_speedptr: *mut i32 = Box::into_raw(my_speed);
+    unsafe {
+        debug!("my_speedptr= {:p}", my_speedptr);
+        debug!("my_speedptr= {}", *my_speedptr);
+    }
 }

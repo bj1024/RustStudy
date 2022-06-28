@@ -1,5 +1,5 @@
 [package]
-name = "rust-exam"
+name = "rust_exam"
 version = "0.1.0"
 edition = "2021"
 
